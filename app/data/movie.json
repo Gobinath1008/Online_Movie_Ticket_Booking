@@ -1,0 +1,266 @@
+[
+  {
+    "id": 1,
+    "img": "/Dude.jpeg",
+    "name": "Dude",
+    "description": "A movie about a dude who does dude things.",
+    "genre": "Action, Comedy",
+    "rating": "4.5/5",
+    "theaters": [
+      {
+        "tname": "PVR",
+        "date": "14-04-2026",
+        "timings": [
+          "10:00 AM",
+          "2:00 PM"
+        ],
+        "seats": []
+      },
+      {
+        "tname": "INOX",
+        "date": "14-04-2026",
+        "timings": [
+          "11:00 AM",
+          "3:00 PM"
+        ],
+        "seats": []
+      }
+    ],
+    "index": 0
+  },
+  {
+    "id": 2,
+    "img": "/Maveerann.jpg",
+    "name": "Maveeran",
+    "description": "A movie about a Maveeran who does Maveeran things.",
+    "genre": "Action, Comedy",
+    "rating": "4/5",
+    "theaters": [
+      {
+        "tname": "PVR",
+        "date": "14-04-2026",
+        "timings": [
+          "10:00 AM",
+          "2:00 PM",
+          "6:00 PM"
+        ],
+        "bookings": {
+          "10:00 AM": [
+            "A3",
+            "A4",
+            "A5"
+          ]
+        }
+      },
+      {
+        "tname": "INOX",
+        "date": "14-04-2026",
+        "timings": [
+          "11:00 AM",
+          "3:00 PM"
+        ]
+      }
+    ],
+    "index": 1
+  },
+  {
+    "id": 3,
+    "img": "/billa2.jpg",
+    "name": "Billa 2",
+    "description": "A movie about a Billa who does Billa things.",
+    "genre": "Action, Comedy",
+    "rating": "5/5",
+    "theaters": [
+      {
+        "tname": "PVR",
+        "date": "14-04-2026",
+        "timings": [
+          "10:00 AM",
+          "2:00 PM",
+          "6:00 PM"
+        ],
+        "bookings": {
+          "2:00 PM": [],
+          "10:00 AM": []
+        }
+      },
+      {
+        "tname": "INOX",
+        "date": "14-04-2026",
+        "timings": [
+          "11:00 AM",
+          "3:00 PM"
+        ]
+      }
+    ],
+    "index": 2
+  },
+  {
+    "id": 4,
+    "img": "/ps-2.jpg",
+    "name": "PS 2",
+    "description": "A movie about a Ps who does Ps things.",
+    "genre": "Action, Comedy",
+    "rating": "4.5/5",
+    "theaters": [
+      {
+        "tname": "PVR",
+        "date": "14-04-2026",
+        "timings": [
+          "10:00 AM",
+          "2:00 PM",
+          "6:00 PM"
+        ]
+      },
+      {
+        "tname": "INOX",
+        "date": "14-04-2026",
+        "timings": [
+          "11:00 AM",
+          "3:00 PM"
+        ]
+      }
+    ],
+    "index": 3
+  },
+  {
+    "id": 5,
+    "img": "/Thunivuu.jpg",
+    "name": "Thunivu",
+    "description": "A movie about a Thunivu who does Thunivu things.",
+    "genre": "Action, Comedy",
+    "rating": "4.3/5",
+    "theaters": [
+      {
+        "tname": "PVR",
+        "date": "14-04-2026",
+        "timings": [
+          "10:00 AM",
+          "2:00 PM",
+          "6:00 PM"
+        ]
+      },
+      {
+        "tname": "INOX",
+        "date": "14-04-2026",
+        "timings": [
+          "11:00 AM",
+          "3:00 PM"
+        ]
+      }
+    ],
+    "index": 4
+  },
+  {
+    "id": 6,
+    "img": "/Vidamuyachii.jpeg",
+    "name": "Vidamuyarchi",
+    "description": "A movie about a Vidamuyarchi who does Vidamuyarchi things.",
+    "genre": "Action, Comedy",
+    "rating": "4.7/5",
+    "theaters": [
+      {
+        "tname": "PVR",
+        "date": "14-04-2026",
+        "timings": [
+          "10:00 AM",
+          "2:00 PM",
+          "6:00 PM"
+        ]
+      },
+      {
+        "tname": "INOX",
+        "date": "14-04-2026",
+        "timings": [
+          "11:00 AM",
+          "3:00 PM"
+        ]
+      }
+    ],
+    "index": 5
+  },
+  {
+    "name": "Leo",
+    "img": "/Leo.avif",
+    "description": "overated movie",
+    "genre": "Leo",
+    "rating": "4.3",
+    "theaters": [
+      {
+        "tname": "INOX",
+        "name": "INOX",
+        "date": "16-04-2026",
+        "timings": [
+          "6:00 AM",
+          " 11:00 AM"
+        ]
+      },
+      {
+        "tname": "PVR",
+        "name": "PVR",
+        "date": "16-04-2026",
+        "timings": [
+          "6:00 AM",
+          " 11:00 AM"
+        ]
+      }
+    ],
+    "id": 1775897257725
+  },
+  {
+    "name": "DHURANDHAR 2",
+    "img": "/dhurandhar-2.webp",
+    "description": "Intresting and Revenge movie",
+    "genre": "part-2 ",
+    "rating": "4.8",
+    "theaters": [
+      {
+        "tname": "INOX",
+        "name": "INOX",
+        "date": "17-04-2026",
+        "timings": [
+          "6:00 AM",
+          " 10:00 AM"
+        ]
+      },
+      {
+        "tname": "PVR",
+        "name": "PVR",
+        "date": "17-04-2026",
+        "timings": [
+          "8:00 AM",
+          " 12:00 AM"
+        ]
+      }
+    ],
+    "id": 1775897482441
+  },
+  {
+    "name": "TN 2026",
+    "img": "/tn2026.jpg",
+    "description": "TN 2026 is a Political movie",
+    "genre": "Tn 2026",
+    "rating": "4.7/5",
+    "theaters": [
+      {
+        "tname": "INOX",
+        "name": "INOX",
+        "date": "11-04-2026",
+        "timings": [
+          "8:00 AM",
+          " 12:00AM"
+        ]
+      },
+      {
+        "tname": "PVR",
+        "name": "PVR",
+        "date": "11-04-2026",
+        "timings": [
+          "8:00 AM",
+          " 12:00AM"
+        ]
+      }
+    ],
+    "id": 1775897849440
+  }
+]

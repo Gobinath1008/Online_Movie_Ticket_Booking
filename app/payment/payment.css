@@ -1,0 +1,39 @@
+.payment-container {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 20px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.summary-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+  text-align: left;
+}
+
+.summary-card p {
+  font-size: 1.1rem;
+  margin: 8px 0;
+}
+
+.total-amount {
+  color: #d9534f;
+  margin-top: 15px;
+  font-size: 1.5rem;
+}
+
+.pay-btn {
+  width: 100%;
+  padding: 15px;
+  background-color: #28a745;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}

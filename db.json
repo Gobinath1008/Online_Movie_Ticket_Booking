@@ -1,0 +1,38 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@gmail.com",
+      "username": "admin",
+      "password": "123456",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "email": "user@gmail.com",
+      "username": "user",
+      "password": "password",
+      "role": "customer"
+    },
+    {
+      "id": 1775712039020,
+      "email": "chandru@gmail.com",
+      "password": "chandru",
+      "role": "admin"
+    },
+    {
+      "id": 1775732517394,
+      "email": "gobi@gmail.com",
+      "password": "123456",
+      "role": "customer"
+    },
+    {
+      "id": 1775808409048,
+      "username": "gobi",
+      "name": "Gobinath S",
+      "email": "gobi@gmail.com",
+      "password": "gobi1234",
+      "role": "customer"
+    }
+  ]
+}

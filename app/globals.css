@@ -19,8 +19,221 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: fixed;
+  background-color: #e89a24;
+  padding: 20px 30px;
+
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+}
+
+.navbar ul {
+  list-style: none;
+}
+
+.navbar li {
+  display: inline;
+  margin-left: 20px;
+}
+
+.dashboard {
+  margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.dashboard input {
+  padding: 10px;
+  width: 250px;
+  border: 2px solid black;
+  border-radius: 10px;
+}
+
+.Movie_card_section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.Movie-card {
+  background-color: #fefddf;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.Movie-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+}
+
+.Movie-card img {
+  width: 400px;
+  height: 400px;
+  padding: 3%;
+  border-radius: 30px;
+}
+
+.content {
+  padding: 10px;
+}
+
+/* BUTTONS */
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.btn-group button {
+  flex: 1;
+  margin: 5px;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-group button:first-child {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-group button:last-child {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Login Required Modal Specifics */
+.login-modal-content {
+  text-align: center;
+}
+
+.login-modal-content p {
+  margin: 15px 0;
+}
+
+.login-modal-btns {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.login-btn-confirm {
+  padding: 10px 25px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.login-btn-confirm:hover {
+  background-color: #218838;
+}
+
+.login-btn-cancel {
+  padding: 10px 25px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.login-btn-cancel:hover {
+  background-color: #c82333;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 15px;
+  width: 400px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h2,
+.modal-content h4 {
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  margin: 8px 0 15px 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  color: black;
+  background-color: #f9f9f9;
+}
+
+.modal-btns {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.modal-btns button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 48%;
+}
+
+.modal-btns button:first-child {
+  background-color: #28a745;
+  color: white;
+}
+
+.modal-btns button:last-child {
+  background-color: #dc3545;
+  color: white;
+}
+
+.login-btn-cancel {
+  background-color: #218838;
+  color: white;
+}
+
+.login-btn-confirm {
+  background-color: #218838;
+  color: white;
 }

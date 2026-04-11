@@ -1,0 +1,126 @@
+/* Container */
+.seat-container {
+  text-align: center;
+  padding: 40px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+h2{
+  font-size: 40px;
+}
+/* Title */
+.seat-container h1 {
+  margin-bottom: 20px;
+}
+
+/* SCREEN */
+.screen {
+  width: 400px;
+  margin: 20px auto;
+  padding: 12px;
+  background: linear-gradient(to right, #999, #ddd);
+  border-radius: 10px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+/* GRID */
+.seat-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ROW */
+.row {
+  display: flex;
+  justify-content: center;
+}
+
+/* SEAT */
+.seat {
+  width: 38px;
+  height: 38px;
+  margin: 6px;
+  border-radius: 8px;
+  border: 1px solid #999;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* HOVER */
+.seat:hover {
+  transform: scale(1.1);
+}
+
+/* STATES */
+.seat.selected {
+  background: #28a745;
+  color: white;
+  border: none;
+}
+
+.seat.booked {
+  background: #dc3545;
+  color: white;
+  cursor: not-allowed;
+  border: none;
+}
+
+/* LEGEND */
+.legend {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  align-items: center;
+}
+
+.box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.available {
+  background: white;
+  border: 1px solid #999;
+}
+
+.selected {
+  background: #28a745;
+}
+
+.booked {
+  background: #dc3545;
+}
+
+/* SUMMARY CARD */
+.summary {
+  margin-top: 30px;
+  background: white;
+  display: inline-block;
+  padding: 20px 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* BUTTON */
+.pay-btn {
+  margin-top: 20px;
+  padding: 12px 25px;
+  background: linear-gradient(45deg, black, #333);
+  color: white;
+  border-radius: 25px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+
+.pay-btn:hover {
+  transform: scale(1.05);
+}
