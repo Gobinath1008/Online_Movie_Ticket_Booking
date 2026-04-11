@@ -68,7 +68,7 @@ export default function AdminPage() {
       <Navbar role="admin" />
       <div>
         <Hero 
-          movies={sortedMovies.filter((m: any) => m.isHero).length > 0 ? sortedMovies.filter((m: any) => m.isHero) : sortedMovies}
+          movies={sortedMovies}
           isAdmin={true}
           onEdit={(movie: any) => {
             const movieIndex = movies.findIndex((m) => m.name === movie.name);

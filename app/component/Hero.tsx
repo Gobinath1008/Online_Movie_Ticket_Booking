@@ -33,12 +33,15 @@ export default function Hero({ movies: propMovies, isAdmin, onEdit, onBookNow }:
 
   // Load movies
   useEffect(() => {
+    let loadedMovies = [];
     if (propMovies) {
-      setMovies(propMovies);
+      loadedMovies = propMovies;
     } else {
-      const stored = JSON.parse(localStorage.getItem("movies") || "[]");
-      setMovies(stored);
+      loadedMovies = JSON.parse(localStorage.getItem("movies") || "[]");
     }
+
+    const heroMovies = loadedMovies.filter((m: Movie) => m.isHero);
+    setMovies(heroMovies.length > 0 ? heroMovies : loadedMovies);
   }, [propMovies]);
 
   // Auto slide
