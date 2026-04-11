@@ -125,7 +125,7 @@
   },
   {
     "id": 5,
-    "img": "/Thunivuu.jpg",
+    "img": "/thunivuu.jpg",
     "name": "Thunivu",
     "description": "A movie about a Thunivu who does Thunivu things.",
     "genre": "Action, Comedy",
@@ -149,7 +149,8 @@
         ]
       }
     ],
-    "index": 4
+    "index": 4,
+    "isHero": true
   },
   {
     "id": 6,
@@ -177,7 +178,8 @@
         ]
       }
     ],
-    "index": 5
+    "index": 5,
+    "isHero": true
   },
   {
     "name": "Leo",
@@ -233,7 +235,9 @@
         ]
       }
     ],
-    "id": 1775897482441
+    "id": 1775897482441,
+    "index": 7,
+    "isHero": true
   },
   {
     "name": "TN 2026",
@@ -261,6 +265,8 @@
         ]
       }
     ],
-    "id": 1775897849440
+    "id": 1775897849440,
+    "index": 8,
+    "isHero": true
   }
 ]

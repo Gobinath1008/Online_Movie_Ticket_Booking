@@ -16,6 +16,7 @@ type Movie = {
   genre: string;
   rating: string;
   theaters: Theater[];
+  isHero?: boolean;
 };
 
 type HeroProps = {
@@ -75,11 +76,7 @@ export default function Hero({ movies: propMovies, isAdmin, onEdit, onBookNow }:
 
           <p className="desc">{movie.description}</p>
 
-          {isAdmin && onEdit ? (
-            <button className="book-btn" onClick={() => onEdit(movie)}>
-              Edit Hero Movie
-            </button>
-          ) : (
+          {!isAdmin && (
             <button className="book-btn" onClick={() => onBookNow ? onBookNow(movie) : router.push("/login")}>
               Book Now
             </button>

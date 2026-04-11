@@ -53,7 +53,8 @@ export default function AdminPage() {
       description: "",
       genre: "",
       rating: "",
-      theaters: []
+      theaters: [],
+      isHero: false
     });
   };
 
@@ -67,7 +68,7 @@ export default function AdminPage() {
       <Navbar role="admin" />
       <div>
         <Hero 
-          movies={sortedMovies}
+          movies={sortedMovies.filter((m: any) => m.isHero).length > 0 ? sortedMovies.filter((m: any) => m.isHero) : sortedMovies}
           isAdmin={true}
           onEdit={(movie: any) => {
             const movieIndex = movies.findIndex((m) => m.name === movie.name);
@@ -109,6 +110,10 @@ export default function AdminPage() {
                   <strong>Rating:</strong> {movie.rating}
                 </p>
 
+                <p>
+                  <strong>Hero Section:</strong> {movie.isHero ? "✅ Yes" : "❌ No"}
+                </p>
+
                 {movie.theaters?.map((t: any, i: number) => (
                   <div key={i}>
                     <p>
@@ -148,6 +153,15 @@ export default function AdminPage() {
         <div className="modal">
           <div className="modal-content">
             <h2>{editMovie.index === -1 ? "Add New Movie" : "Edit Movie"}</h2>
+
+            <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+              <input
+                type="checkbox"
+                checked={editMovie.isHero || false}
+                onChange={(e) => setEditMovie({ ...editMovie, isHero: e.target.checked })}
+              />
+              Show in Hero Section
+            </label>
 
             <input
               value={editMovie.name || ""}

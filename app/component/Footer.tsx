@@ -65,7 +65,7 @@ export default function Footer({ role = "guest" }: { role?: "guest" | "customer"
 
       {/* BOTTOM BAR */}
       <div className="footer-bottom">
-        © {new Date().getFullYear()} MovieBooking App. All rights reserved.
+        © {new Date().getFullYear()} MovieTicketBooking App. All rights reserved.
       </div>
     </footer>
   );
