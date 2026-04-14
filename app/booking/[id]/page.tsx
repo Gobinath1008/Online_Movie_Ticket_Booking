@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import moviesData from "../../data/movie.json";
 import "./booking.css";
+import Navbar from "@/app/component/Navbar";
 
 export default function BookingPage() {
   const { id } = useParams();
@@ -42,6 +43,8 @@ export default function BookingPage() {
 
   return (
     <div className="booking-container">
+
+    <Navbar role="customer"/>
       <h1 className="movie-title">{movie.name}</h1>
 
       <h3 className="subtitle">Select Theater & Time</h3>
@@ -49,7 +52,7 @@ export default function BookingPage() {
       <div className="theater-list">
         {movie.theaters.map((t: any, i: number) => (
           <div className="theater-card" key={i}>
-            <h4 className="theater-name">{t.tname}</h4>
+            <h4 className="theater-name">{t.tname}</h4><h4 className="theater-name">{t.date}</h4>
             
             <div className="time-buttons">
               {t.timings.map((time: string, j: number) => (

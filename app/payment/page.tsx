@@ -2,6 +2,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import "./payment.css";
+import Navbar from "../component/Navbar";
 
 function PaymentContent() {
   const searchParams = useSearchParams();
@@ -100,6 +101,8 @@ function PaymentContent() {
 
   return (
     <div className="payment-container">
+
+      <Navbar role="customer" />
       <h1>Booking Summary</h1>
 
       <div className="summary-card">

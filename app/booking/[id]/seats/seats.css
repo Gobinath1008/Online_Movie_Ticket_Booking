@@ -5,6 +5,9 @@
   background: #f5f5f5;
   min-height: 100vh;
 }
+h3{
+  color: black;
+}
 
 h2{
   font-size: 40px;

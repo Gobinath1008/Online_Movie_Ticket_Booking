@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "img": "/Dude.jpeg",
+    "img": "/uploads/Dude.jpeg",
     "name": "Dude",
     "description": "A movie about a dude who does dude things.",
     "genre": "Action, Comedy",
@@ -30,7 +30,7 @@
   },
   {
     "id": 2,
-    "img": "/Maveerann.jpg",
+    "img": "/uploads/Maveerann.jpg",
     "name": "Maveeran",
     "description": "A movie about a Maveeran things.",
     "genre": "Action, Comedy",
@@ -60,7 +60,7 @@
   },
   {
     "id": 3,
-    "img": "/billa2.jpg",
+    "img": "/uploads/billa2.jpg",
     "name": "Billa 2",
     "description": "A movie about a Billa who does Billa things.",
     "genre": "Action, Comedy",
@@ -91,7 +91,7 @@
   },
   {
     "id": 4,
-    "img": "/ps-2.jpg",
+    "img": "/uploads/ps-2.jpg",
     "name": "PS 2",
     "description": "A movie about a Ps who does Ps things.",
     "genre": "Action, Comedy",
@@ -118,7 +118,7 @@
   },
   {
     "id": 5,
-    "img": "/thunivuu.jpg",
+    "img": "/uploads/thunivuu.jpg",
     "name": "Thunivu",
     "description": "A movie about a Thunivu who does Thunivu things.",
     "genre": "Action, Comedy",
@@ -146,7 +146,7 @@
   },
   {
     "id": 6,
-    "img": "/Vidamuyachii.jpeg",
+    "img": "/uploads/Vidamuyachii.jpeg",
     "name": "Vidamuyarchi",
     "description": "A movie about a Vidamuyarchi things.",
     "genre": "Action, Comedy",
@@ -174,7 +174,7 @@
   },
   {
     "name": "Leo",
-    "img": "/Leo.avif",
+    "img": "/uploads/Leo.avif",
     "description": "Intresting and Revenge movie",
     "genre": "Leo",
     "rating": "4.3",
@@ -186,7 +186,13 @@
         "timings": [
           "6:00 AM",
           " 11:00 AM"
-        ]
+        ],
+        "bookings": {
+          "6:00 AM": [
+            "A4",
+            "A3"
+          ]
+        }
       },
       {
         "tname": "PVR",
@@ -203,7 +209,7 @@
   },
   {
     "name": "DHURANDHAR 2",
-    "img": "/dhurandhar-2.webp",
+    "img": "/uploads/dhurandhar-2.webp",
     "description": "Intresting and Revenge movie",
     "genre": "part-2 ",
     "rating": "4.8",
@@ -236,7 +242,7 @@
   },
   {
     "name": "TN 2026",
-    "img": "/tn2026.jpg",
+    "img": "/uploads/tn2026.jpg",
     "description": "TN 2026 is a Political movie",
     "genre": "Tn 2026",
     "rating": "4.7/5",
@@ -248,7 +254,13 @@
         "timings": [
           "8:00 AM",
           " 12:00AM"
-        ]
+        ],
+        "bookings": {
+          "8:00 AM": [
+            "A4",
+            "A5"
+          ]
+        }
       },
       {
         "tname": "PVR",

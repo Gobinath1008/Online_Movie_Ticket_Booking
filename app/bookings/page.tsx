@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import "./bookings.css";
+import Navbar from "../component/Navbar";
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -53,15 +54,7 @@ export default function MyBookingsPage() {
 
   return (
     <div>
-      <div className="navbar">
-        <Link href="/">
-          <h1>Movie Ticket Booking</h1>
-        </Link>
-        <ul>
-          <li><Link href="/customer">Home</Link></li>
-          <li><Link href="/bookings">Bookings</Link></li>
-        </ul>
-      </div>
+      <Navbar role="customer" />
 
       <div className="bookings-container">
         <h1>🎟️ My Bookings</h1>

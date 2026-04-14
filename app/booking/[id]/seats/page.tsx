@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import "./seats.css";
+import Navbar from "@/app/component/Navbar";
 
 function SeatBookingContent() {
   const router = useRouter();
@@ -81,6 +82,8 @@ function SeatBookingContent() {
 
   return (
     <div className="seat-container">
+      <Navbar role="customer"/>
+      
       <h2>{movieName}</h2>
 
       <p className="info">
