@@ -10,6 +10,36 @@ export default function AdminPage() {
   const [movies, setMovies] = useState(movieData);
   const [editMovie, setEditMovie] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setEditMovie({ ...editMovie, img: result.imageUrl });
+        alert("Image uploaded successfully!");
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while uploading.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleDelete = (index: number) => {
     const updated = movies.filter((_, i) => i !== index);
@@ -171,13 +201,32 @@ export default function AdminPage() {
               placeholder="Title"
             />
 
-            <input
-              value={editMovie.img || ""}
-              onChange={(e) =>
-                setEditMovie({ ...editMovie, img: e.target.value })
-              }
-              placeholder="Image URL"
-            />
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "10px" }}>
+              <label style={{ fontSize: "14px", fontWeight: "bold" }}>Movie Poster</label>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                  disabled={uploading}
+                />
+                {uploading && <span style={{ fontSize: "12px", color: "blue" }}>Uploading...</span>}
+              </div>
+              <input
+                value={editMovie.img || ""}
+                onChange={(e) =>
+                  setEditMovie({ ...editMovie, img: e.target.value })
+                }
+                placeholder="Or paste Image URL manually"
+              />
+              {editMovie.img && (
+                <img 
+                  src={editMovie.img} 
+                  alt="Preview" 
+                  style={{ width: "100px", borderRadius: "8px", marginTop: "5px", objectFit: "cover" }} 
+                />
+              )}
+            </div>
 
             <input
               value={editMovie.genre || ""}
