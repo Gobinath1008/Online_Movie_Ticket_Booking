@@ -32,7 +32,7 @@
     "id": 2,
     "img": "/Maveerann.jpg",
     "name": "Maveeran",
-    "description": "A movie about a Maveeran who does Maveeran things.",
+    "description": "A movie about a Maveeran things.",
     "genre": "Action, Comedy",
     "rating": "4/5",
     "theaters": [
@@ -41,15 +41,10 @@
         "date": "14-04-2026",
         "timings": [
           "10:00 AM",
-          "2:00 PM",
-          "6:00 PM"
+          "2:00 PM"
         ],
         "bookings": {
-          "10:00 AM": [
-            "A3",
-            "A4",
-            "A5"
-          ]
+          "10:00 AM": []
         }
       },
       {
@@ -76,8 +71,7 @@
         "date": "14-04-2026",
         "timings": [
           "10:00 AM",
-          "2:00 PM",
-          "6:00 PM"
+          "2:00 PM"
         ],
         "bookings": {
           "2:00 PM": [],
@@ -108,8 +102,7 @@
         "date": "14-04-2026",
         "timings": [
           "10:00 AM",
-          "2:00 PM",
-          "6:00 PM"
+          "2:00 PM"
         ]
       },
       {
@@ -136,8 +129,7 @@
         "date": "14-04-2026",
         "timings": [
           "10:00 AM",
-          "2:00 PM",
-          "6:00 PM"
+          "2:00 PM"
         ]
       },
       {
@@ -156,7 +148,7 @@
     "id": 6,
     "img": "/Vidamuyachii.jpeg",
     "name": "Vidamuyarchi",
-    "description": "A movie about a Vidamuyarchi who does Vidamuyarchi things.",
+    "description": "A movie about a Vidamuyarchi things.",
     "genre": "Action, Comedy",
     "rating": "4.7/5",
     "theaters": [
@@ -165,8 +157,7 @@
         "date": "14-04-2026",
         "timings": [
           "10:00 AM",
-          "2:00 PM",
-          "6:00 PM"
+          "2:00 PM"
         ]
       },
       {
@@ -184,7 +175,7 @@
   {
     "name": "Leo",
     "img": "/Leo.avif",
-    "description": "overated movie",
+    "description": "Intresting and Revenge movie",
     "genre": "Leo",
     "rating": "4.3",
     "theaters": [
@@ -207,7 +198,8 @@
         ]
       }
     ],
-    "id": 1775897257725
+    "id": 1775897257725,
+    "index": 6
   },
   {
     "name": "DHURANDHAR 2",
@@ -223,7 +215,10 @@
         "timings": [
           "6:00 AM",
           " 10:00 AM"
-        ]
+        ],
+        "bookings": {
+          "6:00 AM": []
+        }
       },
       {
         "tname": "PVR",
