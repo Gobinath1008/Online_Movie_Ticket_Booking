@@ -54,10 +54,10 @@ export default function Home() {
                     <strong>Rating:</strong> {movie.rating}
                   </p>
 
-                  <button onClick={() => setShowLoginMsg(true)} 
-                  style={{ width: "90%", padding: "10px", backgroundColor: "#db4d10", color: "white", border: "none", 
-                  borderRadius: "8px", marginTop: "15px", cursor: "pointer", 
-                  fontWeight: "bold" }}>Book Now</button>
+                  <button onClick={() => setShowLoginMsg(true)}
+                  style={{ width: "90%", padding: "12px", background: "linear-gradient(135deg, #e89a24, #f5a623)", color: "white", border: "none",
+                  borderRadius: "10px", marginTop: "15px", cursor: "pointer",
+                  fontWeight: "bold", boxShadow: "0 4px 15px rgba(232, 154, 36, 0.3)", transition: "all 0.3s ease" }}>Book Now</button>
                 </div>
               </div>
             </div>
