@@ -1,9 +1,12 @@
 /* Container */
 .seat-container {
   text-align: center;
-  padding: 40px;
+  padding: 10px 40px 40px;
   background: #f5f5f5;
-  min-height: 100vh;
+  min-height: auto;
+  height: calc(100vh - 80px);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 h3{
   color: black;

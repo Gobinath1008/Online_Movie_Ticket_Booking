@@ -1,7 +1,7 @@
 "use client";
 import movies from "../data/movie.json";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Hero from "../component/Hero";
 import Footer from "../component/Footer";
 import Navbar from "../component/Navbar";
@@ -10,6 +10,20 @@ import { useRouter } from "next/navigation";
 export default function CustomerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+
+  // Route protection: Check authentication on mount
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
+      router.push("/login");
+      return;
+    }
+    const user = JSON.parse(userStr);
+    if (user.role !== "customer") {
+      router.push(user.role === "admin" ? "/admin" : "/login");
+    }
+  }, [router]);
+
   const sortedMovies = [...movies].sort((a, b) => b.id - a.id);
   const filteredMovies = sortedMovies.filter((movie) =>
     movie.name.toLowerCase().includes(searchQuery.toLowerCase()),

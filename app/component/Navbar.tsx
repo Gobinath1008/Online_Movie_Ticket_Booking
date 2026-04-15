@@ -1,8 +1,17 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Film, User, LogOut, Home, Calendar, Upload, Image } from "lucide-react";
 
 export default function Navbar({ role = "guest" }: { role?: "guest" | "customer" | "admin" }) {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("bookings");
+    router.push("/login");
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -43,10 +52,10 @@ export default function Navbar({ role = "guest" }: { role?: "guest" | "customer"
               </Link>
             </li>
             <li>
-              <Link href="/" className="nav-link nav-link-danger">
+              <button onClick={handleLogout} className="nav-link nav-link-danger logout-btn">
                 <LogOut size={18} />
                 <span>Logout</span>
-              </Link>
+              </button>
             </li>
           </>
         )}
@@ -65,10 +74,10 @@ export default function Navbar({ role = "guest" }: { role?: "guest" | "customer"
               </Link>
             </li>
             <li>
-              <Link href="/" className="nav-link nav-link-danger">
+              <button onClick={handleLogout} className="nav-link nav-link-danger logout-btn">
                 <LogOut size={18} />
                 <span>Logout</span>
-              </Link>
+              </button>
             </li>
           </>
         )}

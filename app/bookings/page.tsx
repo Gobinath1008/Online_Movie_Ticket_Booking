@@ -1,12 +1,28 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import "./bookings.css";
 import Navbar from "../component/Navbar";
 
 export default function MyBookingsPage() {
+  const router = useRouter();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Route protection: Check authentication on mount
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
+      router.push("/login");
+      return;
+    }
+    const user = JSON.parse(userStr);
+    // Only customers should access bookings
+    if (user.role !== "customer") {
+      router.push(user.role === "admin" ? "/admin" : "/login");
+    }
+  }, [router]);
 
   useEffect(() => {
     try {

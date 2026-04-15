@@ -73,7 +73,7 @@
   align-items: center;
   background: linear-gradient(135deg, rgba(232, 154, 36, 0.98), rgba(245, 166, 35, 0.95));
   backdrop-filter: blur(15px);
-  padding: 18px 40px;
+  padding: 15px 40px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
   border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 }
@@ -413,4 +413,18 @@
 .login-btn-confirm {
   background-color: #218838;
   color: white;
+}
+
+/* Logout button styling */
+.logout-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.logout-btn:hover {
+  background: rgba(220, 53, 69, 0.8);
+  border-color: rgba(220, 53, 69, 0.9);
 }

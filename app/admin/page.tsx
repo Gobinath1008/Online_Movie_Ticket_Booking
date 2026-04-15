@@ -1,16 +1,31 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import movieData from "../data/movie.json";
 import Hero from "../component/Hero";
 import Footer from "../component/Footer";
 import Navbar from "../component/Navbar";
 
 export default function AdminPage() {
+  const router = useRouter();
   const [movies, setMovies] = useState(movieData);
   const [editMovie, setEditMovie] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  // Route protection: Check authentication on mount
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
+      router.push("/login");
+      return;
+    }
+    const user = JSON.parse(userStr);
+    if (user.role !== "admin") {
+      router.push(user.role === "customer" ? "/customer" : "/login");
+    }
+  }, [router]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
