@@ -98,6 +98,7 @@ export default function AdminPage() {
       description: "",
       genre: "",
       rating: "",
+      rate: 150,
       theaters: [],
       isHero: false
     });
@@ -153,6 +154,9 @@ export default function AdminPage() {
                 </p>
                 <p>
                   <strong>Rating:</strong> {movie.rating}
+                </p>
+                <p>
+                  <strong>Ticket Rate:</strong> ₹{movie.rate || 150}
                 </p>
 
                 <p>
@@ -257,6 +261,16 @@ export default function AdminPage() {
                 setEditMovie({ ...editMovie, rating: e.target.value })
               }
               placeholder="Rating"
+            />
+
+            <input
+              type="number"
+              value={editMovie.rate || ""}
+              onChange={(e) =>
+                setEditMovie({ ...editMovie, rate: parseInt(e.target.value) || 0 })
+              }
+              placeholder="Ticket Rate (₹)"
+              min="0"
             />
 
             <textarea

@@ -19,8 +19,28 @@ function SeatBookingContent() {
 
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [bookedSeats, setBookedSeats] = useState<string[]>([]); // ✅ dynamic
+  const [movieRate, setMovieRate] = useState<number>(150);
 
-  const price = 150;
+  // Fetch movie rate
+  useEffect(() => {
+    const fetchMovieRate = async () => {
+      try {
+        const res = await fetch("/api/movies");
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          const movie = data.find((m: any) => m.id === parseInt(id as string));
+          if (movie && movie.rate) {
+            setMovieRate(movie.rate);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching movie rate", err);
+      }
+    };
+    fetchMovieRate();
+  }, [id]);
+
+  const price = movieRate;
 
   // 🔥 FETCH BOOKED SEATS FROM API
   useEffect(() => {
