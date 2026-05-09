@@ -1,0 +1,165 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import styles from './booking.module.css';
+
+const TIME_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
+
+export default function BookPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const [hall, setHall] = useState(null);
+  const [form, setForm] = useState({ date: '', startTime: '', endTime: '', purpose: '', attendees: '1' });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [submitMsg, setSubmitMsg] = useState('');
+  const [submitError, setSubmitError] = useState('');
+
+  const today = new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    fetch(`/api/halls/${id}`).then(r => r.json()).then(d => { setHall(d); setPageLoading(false); });
+  }, [id]);
+
+  const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.date) errs.date = 'Please select a date';
+    if (!form.startTime) errs.startTime = 'Please select start time';
+    if (!form.endTime) errs.endTime = 'Please select end time';
+    if (form.startTime && form.endTime && form.startTime >= form.endTime) errs.endTime = 'End time must be after start time';
+    if (!form.purpose.trim()) errs.purpose = 'Purpose is required';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setLoading(true); setSubmitError('');
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hall: id, ...form, attendees: parseInt(form.attendees) || 1 }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setSubmitError(data.message); return; }
+      setSubmitMsg('✅ Booking submitted! You will be notified when admin approves it.');
+      setTimeout(() => router.push('/my-bookings'), 2500);
+    } catch { setSubmitError('Something went wrong. Please try again.'); }
+    finally { setLoading(false); }
+  };
+
+  const duration = form.startTime && form.endTime && form.startTime < form.endTime
+    ? parseInt(form.endTime) - parseInt(form.startTime) : 0;
+
+  if (pageLoading) return <div className="spinner-wrap"><div className="spinner" /></div>;
+
+  return (
+    <div className={styles.page}>
+      <div className="container">
+        <Link href={`/halls/${id}`} className={styles.backBtn}>← Back to Hall Details</Link>
+        <div className={styles.layout}>
+          {/* Form */}
+          <div>
+            <div className={styles.formHeader}>
+              <h1 className={styles.formTitle}>Book a Hall</h1>
+              <div className={styles.hallBadge}>
+                <span>🏛️</span>
+                <div>
+                  <div className={styles.hallBadgeName}>{hall?.name}</div>
+                  <div className={styles.hallBadgeCap}>Capacity: {hall?.capacity} seats • {hall?.location}</div>
+                </div>
+              </div>
+            </div>
+
+            {submitMsg && <div className="alert alert-success">{submitMsg}</div>}
+            {submitError && <div className="alert alert-error">{submitError}</div>}
+
+            <form onSubmit={handleSubmit}>
+              {/* Date */}
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>📅 Select Date</h2>
+                <input id="booking-date" type="date" className={`form-input ${errors.date ? 'error' : ''}`}
+                  min={today} value={form.date} onChange={e => set('date', e.target.value)} />
+                {errors.date && <div className="error-msg">{errors.date}</div>}
+              </div>
+
+              {/* Time slots */}
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>🕐 Start Time</h2>
+                <div className={styles.timeSlots}>
+                  {TIME_SLOTS.slice(0, -1).map(t => (
+                    <button key={t} type="button"
+                      className={`${styles.timeSlot} ${form.startTime === t ? styles.slotActive : ''}`}
+                      onClick={() => set('startTime', t)}>{t}</button>
+                  ))}
+                </div>
+                {errors.startTime && <div className="error-msg">{errors.startTime}</div>}
+              </div>
+
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>🕕 End Time</h2>
+                <div className={styles.timeSlots}>
+                  {TIME_SLOTS.slice(1).map(t => (
+                    <button key={t} type="button"
+                      className={`${styles.timeSlot} ${form.endTime === t ? styles.slotActive : ''} ${form.startTime && t <= form.startTime ? styles.slotDisabled : ''}`}
+                      onClick={() => set('endTime', t)} disabled={!!form.startTime && t <= form.startTime}>{t}</button>
+                  ))}
+                </div>
+                {errors.endTime && <div className="error-msg">{errors.endTime}</div>}
+                {duration > 0 && (
+                  <div className={styles.durationBadge}>⏱️ Duration: {duration} hour{duration !== 1 ? 's' : ''}</div>
+                )}
+              </div>
+
+              {/* Purpose */}
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>📋 Purpose</h2>
+                <textarea id="purpose" className={`form-input ${errors.purpose ? 'error' : ''}`}
+                  placeholder="e.g. Department meeting, Technical seminar, Workshop..."
+                  value={form.purpose} onChange={e => set('purpose', e.target.value)}
+                  rows={3} style={{ resize: 'vertical' }} />
+                {errors.purpose && <div className="error-msg">{errors.purpose}</div>}
+              </div>
+
+              {/* Attendees */}
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>👥 Expected Attendees</h2>
+                <input id="attendees" type="number" className="form-input" min="1" max={hall?.capacity}
+                  placeholder={`Max: ${hall?.capacity}`} value={form.attendees}
+                  onChange={e => set('attendees', e.target.value)} style={{ maxWidth: 200 }} />
+              </div>
+
+              <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
+                {loading ? '⏳ Submitting...' : '🚀 Submit Booking Request'}
+              </button>
+            </form>
+          </div>
+
+          {/* Summary sidebar */}
+          <div className={styles.summary}>
+            <div className={styles.summaryCard}>
+              <h3 className={styles.summaryTitle}>📋 Booking Summary</h3>
+              <div className={styles.summaryRows}>
+                <div className={styles.summaryRow}><span>Hall</span><strong>{hall?.name || '—'}</strong></div>
+                <div className={styles.summaryRow}><span>Location</span><strong>{hall?.location || '—'}</strong></div>
+                <div className={styles.summaryRow}><span>Date</span><strong>{form.date || '—'}</strong></div>
+                <div className={styles.summaryRow}><span>Start</span><strong>{form.startTime || '—'}</strong></div>
+                <div className={styles.summaryRow}><span>End</span><strong>{form.endTime || '—'}</strong></div>
+                <div className={styles.summaryRow}><span>Duration</span><strong>{duration > 0 ? `${duration} hr` : '—'}</strong></div>
+                <div className={styles.summaryRow}><span>Attendees</span><strong>{form.attendees}</strong></div>
+              </div>
+              <div className={styles.summaryNote}>
+                ℹ️ Your request will be sent to admin for approval. You'll see the status in <strong>My Bookings</strong>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

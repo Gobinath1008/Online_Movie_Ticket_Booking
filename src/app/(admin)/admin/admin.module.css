@@ -1,0 +1,42 @@
+.page { padding: 40px 0 80px; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; flex-wrap: wrap; gap: 20px; }
+.adminBadge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px;
+  background: rgba(108,99,255,0.2); border: 1px solid rgba(108,99,255,0.3);
+  border-radius: 999px; font-size: 11px; font-weight: 700; color: var(--primary-light);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+}
+.title { font-size: 36px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+.subtitle { font-size: 15px; color: var(--text-secondary); }
+.quickActions { display: flex; gap: 12px; align-items: center; }
+
+.actionsSection { margin-bottom: 40px; }
+.sectionTitle { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 20px; }
+.actionsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.actionCard {
+  display: flex; flex-direction: column; padding: 24px;
+  border-radius: var(--radius-xl); border: 1px solid var(--card-border);
+  transition: var(--transition);
+}
+.actionCard:hover { transform: translateY(-3px); border-color: rgba(108,99,255,0.4); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.actionIcon { font-size: 32px; margin-bottom: 12px; }
+.actionLabel { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.actionSub { font-size: 13px; color: #fff; }
+
+.recentSection { }
+.recentHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.seeAll { font-size: 14px; color: var(--primary-light); font-weight: 600; transition: var(--transition); }
+.seeAll:hover { color: var(--primary); }
+
+.userCell { display: flex; align-items: center; gap: 10px; }
+.userAvatar {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--primary);
+  color: #fff; font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .header { flex-direction: column; }
+  .quickActions { flex-wrap: wrap; }
+  .title { font-size: 26px; }
+}
