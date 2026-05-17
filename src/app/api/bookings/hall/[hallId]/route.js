@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import Booking from '@/models/Booking';
+import HallBooking from '@/models/HallBooking';
 import { requireAuth } from '@/lib/middleware';
 
 // Hall bookings (for viewing schedule)
@@ -9,10 +9,18 @@ export async function GET(request, props) {
   await connectDB();
   const { searchParams } = new URL(request.url);
   const date = searchParams.get('date');
-  let query = { hall: params.hallId, status: 'approved' };
-  if (date) query.date = date;
-  const bookings = await Booking.find(query)
-    .populate('user', 'name email department')
-    .sort({ date: 1, startTime: 1 });
+  const includePending = searchParams.get('includePending') === 'true';
+
+  let query = { serviceId: params.hallId };
+  if (includePending) {
+    query.status = { $in: ['approved', 'pending'] };
+  } else {
+    query.status = 'approved';
+  }
+  if (date) query.hallDate = date;
+
+  const bookings = await HallBooking.find(query)
+    .populate('user', 'name email')
+    .sort({ hallDate: 1, hallStartTime: 1 });
   return NextResponse.json(bookings);
 }

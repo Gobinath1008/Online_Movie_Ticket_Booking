@@ -15,9 +15,30 @@ export function verifyToken(token) {
   }
 }
 
+import { connectDB } from '@/lib/db';
+import User from '@/models/User';
+
 export async function getServerUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
   if (!token) return null;
-  return verifyToken(token);
+  
+  const decoded = verifyToken(token);
+  if (!decoded) return null;
+
+  try {
+    await connectDB();
+    const user = await User.findById(decoded.id).lean();
+    if (!user) return null;
+    
+    // Return lean user object with id stringified for serialization
+    return {
+      ...user,
+      _id: user._id.toString(),
+      id: user._id.toString(),
+    };
+  } catch (error) {
+    console.error("Error fetching user in getServerUser:", error);
+    return decoded; // Fallback to token data if DB fails
+  }
 }

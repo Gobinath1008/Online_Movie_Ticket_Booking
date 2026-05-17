@@ -1,42 +1,46 @@
-.page { padding: 40px 0 80px; }
-.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; flex-wrap: wrap; gap: 20px; }
+.page { padding: 36px 0 80px; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
+
 .adminBadge {
-  display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px;
-  background: rgba(108,99,255,0.2); border: 1px solid rgba(108,99,255,0.3);
-  border-radius: 999px; font-size: 11px; font-weight: 700; color: var(--primary-light);
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px;
+  background: rgba(124,111,255,0.15); border: 1px solid rgba(124,111,255,0.3);
+  border-radius: 999px; font-size: 11px; font-weight: 700; color: #a899ff;
   text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
 }
-.title { font-size: 36px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
-.subtitle { font-size: 15px; color: var(--text-secondary); }
+.title    { font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 6px; letter-spacing: -1px; }
+.subtitle { font-size: 15px; color: rgba(180,180,220,0.7); }
 .quickActions { display: flex; gap: 12px; align-items: center; }
 
-.actionsSection { margin-bottom: 40px; }
-.sectionTitle { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 20px; }
-.actionsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.actionsSection  { margin-bottom: 40px; }
+.sectionTitle    { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 20px; letter-spacing: -0.3px; }
+.actionsGrid     { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
 .actionCard {
   display: flex; flex-direction: column; padding: 24px;
-  border-radius: var(--radius-xl); border: 1px solid var(--card-border);
-  transition: var(--transition);
+  border-radius: 20px; border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.04);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  backdrop-filter: blur(16px);
 }
-.actionCard:hover { transform: translateY(-3px); border-color: rgba(108,99,255,0.4); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-.actionIcon { font-size: 32px; margin-bottom: 12px; }
+.actionCard:hover { transform: translateY(-4px); border-color: rgba(124,111,255,0.35); box-shadow: 0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(124,111,255,0.2); }
+.actionIcon  { font-size: 32px; margin-bottom: 12px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
 .actionLabel { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-.actionSub { font-size: 13px; color: #fff; }
+.actionSub   { font-size: 13px; color: rgba(200,200,240,0.6); }
 
-.recentSection { }
+.recentSection {}
 .recentHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.seeAll { font-size: 14px; color: var(--primary-light); font-weight: 600; transition: var(--transition); }
-.seeAll:hover { color: var(--primary); }
+.seeAll { font-size: 13px; color: #7c6fff; font-weight: 600; transition: color 0.2s; padding: 6px 14px; background: rgba(124,111,255,0.1); border-radius: 8px; border: 1px solid rgba(124,111,255,0.2); }
+.seeAll:hover { color: #a899ff; background: rgba(124,111,255,0.18); }
 
-.userCell { display: flex; align-items: center; gap: 10px; }
+.userCell   { display: flex; align-items: center; gap: 10px; }
 .userAvatar {
-  width: 32px; height: 32px; border-radius: 50%; background: var(--primary);
-  color: #fff; font-weight: 700; font-size: 14px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #7c6fff, #4cc9f0);
+  color: #fff; font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
 }
 
 @media (max-width: 768px) {
   .header { flex-direction: column; }
   .quickActions { flex-wrap: wrap; }
-  .title { font-size: 26px; }
+  .title { font-size: 24px; }
 }

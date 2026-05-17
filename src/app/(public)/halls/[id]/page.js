@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import styles from './hall.module.css';
+import SmartCalendar from '@/components/SmartCalendar';
 
 const FACILITY_ICONS = {
   'Projector': '📽️', 'AC': '❄️', 'Whiteboard': '📋', 'WiFi': '📶',
@@ -42,15 +43,15 @@ export default function HallDetailPage() {
     const fetchAll = async () => {
       try {
         const [hallRes, bookingsRes] = await Promise.all([
-          fetch(`/api/halls/${id}`),
-          fetch(`/api/bookings/hall/${id}`),
+          fetch(`/api/halls?id=${id}`),
+          fetch(`/api/bookings/hall/${id}?includePending=true`),
         ]);
         setHall(await hallRes.json());
         const bookingsData = await bookingsRes.json();
-        // Sort by date and time
+        // Sort by date and time using new field names
         const sorted = (Array.isArray(bookingsData) ? bookingsData : []).sort((a, b) => {
-          if (a.date !== b.date) return a.date.localeCompare(b.date);
-          return a.startTime.localeCompare(b.startTime);
+          if (a.hallDate !== b.hallDate) return (a.hallDate || '').localeCompare(b.hallDate || '');
+          return (a.hallStartTime || '').localeCompare(b.hallStartTime || '');
         });
         setBookings(sorted);
       } catch { /* ignore */ }
@@ -121,44 +122,21 @@ export default function HallDetailPage() {
 
             {/* Booking Schedule */}
             <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>📅 Booking Schedule</h2>
-              {bookings.length === 0 ? (
-                <div className={styles.availableBox}>
-                  <span className={styles.availableIcon}>✅</span>
-                  <div>
-                    <div className={styles.availableTitle}>Hall is Available!</div>
-                    <div className={styles.availableSub}>No upcoming bookings. You can book anytime.</div>
-                  </div>
-                </div>
-              ) : (
-                <div className={styles.slotList}>
-                  {bookings.map((b, i) => {
-                    const inProgress = isBookingInProgress(b);
-                    return (
-                      <div key={i} className={`${styles.slotItem} ${inProgress ? styles.inProgress : ''}`}>
-                        <div className={styles.slotHeader}>
-                          <div className={styles.slotDate}>📅 {b.date}</div>
-                          <span className={`badge ${inProgress ? 'badge-warning' : 'badge-approved'}`}>
-                            {inProgress ? '🔴 In Progress' : 'Booked'}
-                          </span>
-                        </div>
-                        <div className={styles.slotTime}>🕐 {b.startTime} – {b.endTime}</div>
-                        <div className={styles.slotInfo}>
-                          <div className={styles.slotPurpose}>📋 <strong>Purpose:</strong> {b.purpose}</div>
-                          <div className={styles.slotUser}>👤 <strong>Booked by:</strong> {b.user?.name || 'Unknown'}</div>
-                        </div>
-                        <Link 
-                          href={`/messages?with=${b.user?._id}`} 
-                          className="btn-secondary btn-sm"
-                          style={{ marginTop: '8px', display: 'block', textAlign: 'center' }}
-                        >
-                          💬 Message
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <h2 className={styles.sectionTitle}>📅 Smart Availability Calendar</h2>
+              <div style={{ marginTop: '20px' }}>
+                <SmartCalendar
+                  bookings={bookings}
+                  serviceType="hall"
+                  serviceId={hall._id}
+                  showAnalytics={true}
+                  onDateSelect={(dateStr) => {
+                    window.location.href = `/book/${hall._id}?date=${dateStr}`;
+                  }}
+                  onSlotSelect={(slot, dateStr) => {
+                    window.location.href = `/book/${hall._id}?date=${dateStr}&startTime=${slot.start}&endTime=${slot.end}`;
+                  }}
+                />
+              </div>
             </div>
           </div>
 

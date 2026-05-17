@@ -15,36 +15,71 @@ export default function Navbar({ user }) {
     router.refresh();
   };
 
-  const isAdmin = user?.role === 'admin';
+  const isSuperAdmin = user?.role === 'super-admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
 
   let navLinks = [];
   if (user) {
-    navLinks = isAdmin
-      ? [
+    if (isSuperAdmin) {
+      // Super Admin - full access
+      navLinks = [
         { href: '/admin', label: '📊 Dashboard' },
+        { href: '/admin/super-admin', label: '👑 Super Admin' },
         { href: '/admin/halls', label: '🏛️ Halls' },
+        { href: '/admin/vehicles', label: '🚗 Vehicles' },
+        { href: '/admin/rooms', label: '🏨 Rooms' },
         { href: '/admin/bookings', label: '📋 Bookings' },
-      ]
-      : [
-        { href: '/', label: '🏛️ Halls' },
-        { href: '/my-bookings', label: '📄 My Bookings' },
-        { href: '/messages', label: '💬 Messages' },
       ];
+    } else if (isAdmin) {
+      // Admin - check assignedServices OR permissions
+      navLinks = [
+        { href: '/admin', label: '📊 Dashboard' },
+      ];
+      const hasHall = user.assignedServices?.includes('halls') || user.permissions?.hallAccess !== false;
+      const hasVehicle = user.assignedServices?.includes('vehicles') || user.permissions?.vehicleAccess !== false;
+      const hasRoom = user.assignedServices?.includes('rooms') || user.permissions?.guestRoomAccess !== false;
+      
+      if (hasHall) navLinks.push({ href: '/admin/halls', label: '🏛️ Halls' });
+      if (hasVehicle) navLinks.push({ href: '/admin/vehicles', label: '🚗 Vehicles' });
+      if (hasRoom) navLinks.push({ href: '/admin/rooms', label: '🏨 Rooms' });
+      navLinks.push({ href: '/admin/bookings', label: '📋 Bookings' });
+    } else {
+      // User - check permissions
+      navLinks = [];
+      if (user.permissions?.hallAccess !== false) navLinks.push({ href: '/halls', label: '🏛️ Halls' });
+      if (user.permissions?.vehicleAccess !== false) navLinks.push({ href: '/vehicle-booking', label: '🚗 Vehicles' });
+      if (user.permissions?.guestRoomAccess !== false) navLinks.push({ href: '/room-booking', label: '🏨 Rooms' });
+      navLinks.push({ href: '/my-bookings', label: '📋 My Bookings' });
+    }
   } else {
+    // Guest
     navLinks = [
-      { href: '/', label: '🏛️ Halls' }
+      { href: '/halls', label: '🏛️ Halls' },
+      { href: '/vehicle-booking', label: '🚗 Vehicles' },
+      { href: '/room-booking', label: '🏨 Rooms' },
+      { href: '/login', label: '🔑 Login' },
     ];
   }
+
+  const getRoleBadge = () => {
+    if (isSuperAdmin) {
+      return <span className={`${styles.roleBadge} ${styles.superAdminBadge}`}>👑 Super Admin</span>;
+    }
+    if (isAdmin) {
+      return <span className={`${styles.roleBadge} ${styles.adminBadge}`}>🛡️ Admin</span>;
+    }
+    return <span className={`${styles.roleBadge} ${styles.userBadge}`}>👤 User</span>;
+  };
 
   return (
     <nav className={styles.nav}>
       <div className={styles.inner}>
         {/* Logo */}
-        <Link href="/" className={styles.logo}>
+        <Link href={isAdmin ? '/admin' : '/'} className={styles.logo}>
           <img src="/logo.png" alt="KIOT Logo" className={styles.logoImage} />
           <div>
             <span className={styles.logoName}>KIOT</span>
-            <span className={styles.logoSub}>Hall Booking</span>
+            <span className={styles.logoSub}>Booking</span>
           </div>
         </Link>
 
@@ -66,12 +101,12 @@ export default function Navbar({ user }) {
           {user ? (
             <>
               <div className={styles.userInfo}>
-                <div className={styles.avatar}>{user.name?.[0]?.toUpperCase() || 'U'}</div>
+                <div className={styles.avatar}>
+                  {isSuperAdmin ? '👑' : user.name?.[0]?.toUpperCase() || 'U'}
+                </div>
                 <div className={styles.userText}>
                   <span className={styles.userName}>{user.name}</span>
-                  <span className={`${styles.roleBadge} ${isAdmin ? styles.adminBadge : styles.studentBadge}`}>
-                    {isAdmin ? '🛡️ Admin' : user.role}
-                  </span>
+                  {getRoleBadge()}
                 </div>
               </div>
               <button onClick={handleLogout} className={styles.logoutBtn}>

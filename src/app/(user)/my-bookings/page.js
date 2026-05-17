@@ -1,11 +1,14 @@
 'use client';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import styles from './mybookings.module.css';
+import { toast } from 'react-hot-toast';
 
 const TABS = ['all', 'pending', 'approved', 'rejected', 'cancelled'];
-const STATUS_COLORS = { pending: 'badge-pending', approved: 'badge-approved', rejected: 'badge-rejected', cancelled: 'badge-cancelled' };
-const STATUS_ICONS = { pending: '⏳', approved: '✅', rejected: '❌', cancelled: '🚫' };
+const STATUS_COLORS = { pending: 'badge-pending', approved: 'badge-approved', rejected: 'badge-rejected', cancelled: 'badge-cancelled', completed: 'badge-completed' };
+const STATUS_ICONS = { pending: '⏳', approved: '✅', rejected: '❌', cancelled: '🚫', completed: '✔️' };
+const SERVICE_ICONS = { hall: '🏛️', vehicle: '🚗', room: '🏨' };
+const SERVICE_NAMES = { hall: 'Hall Booking', vehicle: 'Vehicle Rental', room: 'Room Booking' };
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
@@ -16,15 +19,24 @@ export default function MyBookingsPage() {
   const [selectedForCancel, setSelectedForCancel] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/bookings/my');
-    const data = await res.json();
-    setBookings(Array.isArray(data) ? data : []);
-    setLoading(false);
-  };
+    try {
+      const res = await fetch('/api/bookings');
+      if (!res.ok) {
+        throw new Error('Failed to fetch bookings');
+      }
+      const data = await res.json();
+      setBookings(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      toast.error('Could not load your bookings');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  useEffect(() => { fetchBookings(); }, []);
+  useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
   const handleCancel = async (id) => {
     setSelectedForCancel(id);
@@ -36,7 +48,7 @@ export default function MyBookingsPage() {
     const id = selectedForCancel;
     setCancelling(id);
     try {
-      const res = await fetch(`/api/bookings/${id}`, { 
+      const res = await fetch(`/api/bookings/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: cancelReason })
@@ -44,25 +56,75 @@ export default function MyBookingsPage() {
       if (res.ok) {
         setConfirmModal(false);
         setSelectedForCancel(null);
+        toast.success('Booking cancelled successfully');
         fetchBookings();
-      } else { 
-        const d = await res.json(); 
-        alert(d.message);
+      } else {
+        const d = await res.json();
+        toast.error(d.message || 'Failed to cancel booking');
         setConfirmModal(false);
         setSelectedForCancel(null);
       }
-    } finally { setCancelling(null); }
+    } catch (error) {
+      toast.error('An error occurred');
+      setConfirmModal(false);
+      setSelectedForCancel(null);
+    } finally { 
+      setCancelling(null); 
+    }
+  };
+
+const formatTime12h = (timeStr) => {
+  if (!timeStr) return '';
+  const [hourStr, minStr] = timeStr.split(':');
+  const hour = parseInt(hourStr);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${String(hour12).padStart(2, '0')}:${minStr} ${ampm}`;
+};
+
+  const getBookingDetails = (booking) => {
+    switch (booking.serviceType) {
+      case 'hall':
+        return {
+          date: booking.hallDate,
+          time: `${formatTime12h(booking.hallStartTime)} - ${formatTime12h(booking.hallEndTime)}`,
+          location: booking.purpose,
+          description: `${booking.attendees} attendees`
+        };
+      case 'vehicle':
+        return {
+          date: `${booking.vehiclePickupDate} to ${booking.vehicleReturnDate}`,
+          time: `${formatTime12h(booking.vehiclePickupTime || '09:00')} - ${formatTime12h(booking.vehicleReturnTime || '09:00')}`,
+          location: `${booking.pickupLocation || 'N/A'} → ${booking.returnLocation || 'N/A'}`,
+          description: `${booking.withDriver ? 'With Driver' : 'Self-drive'} • Fuel: ${booking.fuelOption}`
+        };
+      case 'room':
+        return {
+          date: `${booking.roomCheckInDate} to ${booking.roomCheckOutDate}`,
+          time: `${formatTime12h(booking.roomCheckInTime || '14:00')} - ${formatTime12h(booking.roomCheckOutTime || '12:00')}`,
+          location: `${booking.numberOfGuests} guests`,
+          description: `${booking.numberOfRooms} room${booking.numberOfRooms > 1 ? 's' : ''}`
+        };
+      default:
+        return { date: 'N/A', time: 'N/A', location: 'N/A', description: 'N/A' };
+    }
   };
 
   const filtered = activeTab === 'all' ? bookings : bookings.filter(b => b.status === activeTab);
-  const counts = { all: bookings.length, pending: bookings.filter(b => b.status === 'pending').length, approved: bookings.filter(b => b.status === 'approved').length, rejected: bookings.filter(b => b.status === 'rejected').length, cancelled: bookings.filter(b => b.status === 'cancelled').length };
+  const counts = {
+    all: bookings.length,
+    pending: bookings.filter(b => b.status === 'pending').length,
+    approved: bookings.filter(b => b.status === 'approved').length,
+    rejected: bookings.filter(b => b.status === 'rejected').length,
+    cancelled: bookings.filter(b => b.status === 'cancelled').length
+  };
 
   const handlePrint = () => {
     const printWindow = window.open('', '', 'height=600,width=800');
     const content = `
       <html>
       <head>
-        <title>My Booking Details</title>
+        <title>My Bookings</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
           h1 { text-align: center; color: #333; }
@@ -75,39 +137,32 @@ export default function MyBookingsPage() {
           .approved { background: rgba(46,204,113,0.2); color: #2ECC71; }
           .rejected { background: rgba(231,76,60,0.2); color: #E74C3C; }
           .cancelled { background: rgba(149,152,154,0.2); color: #6C757D; }
-          .print-time { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
         </style>
       </head>
       <body>
-        <h1>My Booking Details</h1>
+        <h1>My Bookings Report</h1>
         <p>Generated on: ${new Date().toLocaleString()}</p>
         <table>
           <thead>
             <tr>
-              <th>Hall</th>
-              <th>Location</th>
+              <th>Type</th>
               <th>Date</th>
-              <th>Time</th>
-              <th>Purpose</th>
-              <th>Attendees</th>
+              <th>Details</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             ${filtered.map(b => `
               <tr>
-                <td>${b.hall?.name || 'N/A'}</td>
-                <td>${b.hall?.location || 'N/A'}</td>
-                <td>${b.date}</td>
-                <td>${b.startTime} - ${b.endTime}</td>
-                <td>${b.purpose}</td>
-                <td>${b.attendees}</td>
+                <td>${SERVICE_NAMES[b.serviceType]}</td>
+                <td>${getBookingDetails(b).date}</td>
+                <td><strong>${getBookingDetails(b).location}</strong><br/><small>${getBookingDetails(b).description}</small><br/><small>By: ${b.guestName || b.user?.name || 'Unknown'}</small></td>
                 <td><span class="status ${b.status}">${b.status.toUpperCase()}</span></td>
               </tr>
             `).join('')}
           </tbody>
         </table>
-        <div class="print-time">Total Bookings: ${filtered.length}</div>
+        <p style="margin-top: 20px;">Total Bookings: ${filtered.length}</p>
       </body>
       </html>
     `;
@@ -122,10 +177,10 @@ export default function MyBookingsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div className="page-header">
             <h1 className="page-title">My Bookings</h1>
-            <p className="page-subtitle">{bookings.length} total booking requests</p>
+            <p className="page-subtitle">{bookings.length} total bookings across all services</p>
           </div>
           <button onClick={handlePrint} className="btn-secondary" style={{ whiteSpace: 'nowrap' }}>
-            🖨️ Print
+            🖨️ Print Report
           </button>
         </div>
 
@@ -151,39 +206,58 @@ export default function MyBookingsPage() {
           </div>
         ) : (
           <div className={styles.bookingList}>
-            {filtered.map(b => (
-              <div key={b._id} className={styles.bookingCard}>
-                <div className={styles.bookingLeft}>
-                  <div className={styles.statusIcon}>{STATUS_ICONS[b.status]}</div>
-                  <div className={styles.bookingInfo}>
-                    <div className={styles.bookingHall}>🏛️ {b.hall?.name}</div>
-                    <div className={styles.bookingMeta}>
-                      📅 {b.date} &nbsp;•&nbsp; 🕐 {b.startTime}–{b.endTime} &nbsp;•&nbsp; 📍 {b.hall?.location}
+            {filtered.map((b, idx) => {
+              const details = getBookingDetails(b);
+              return (
+                <motion.div
+                  key={b._id}
+                  className={styles.bookingCard}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <div className={styles.bookingLeft}>
+                    <div className={styles.statusIcon}>{STATUS_ICONS[b.status]}</div>
+                    <div className={styles.bookingInfo}>
+                      <div className={styles.bookingHall}>
+                        {SERVICE_ICONS[b.serviceType]} {SERVICE_NAMES[b.serviceType]}
+                      </div>
+                      <div className={styles.bookingMeta}>
+                        📅 {details.date}
+                      </div>
+                      <div className={styles.bookingMeta}>
+                        {details.time}
+                      </div>
+                      <div className={styles.bookingPurpose} style={{ fontWeight: 500, color: '#374151', marginTop: '4px' }}>
+                        {details.location}
+                      </div>
+                      <div className={styles.bookingPurpose}>{details.description}</div>
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '6px' }}>
+                        👤 <strong>{b.guestName || b.user?.name || 'Unknown'}</strong>
+                        {(b.guestPhone || b.user?.phone) ? ` • 📞 ${b.guestPhone || b.user?.phone}` : ''}
+                        {(b.guestEmail || b.user?.email) ? ` • ✉️ ${b.guestEmail || b.user?.email}` : ''}
+                      </div>
+                      {b.adminNote && (
+                        <div className={styles.adminNote}>💬 Admin: {b.adminNote}</div>
+                      )}
+                      {b.cancellationReason && (
+                        <div className={styles.cancellationNote}>
+                          🚫 {b.cancelledBy === 'admin' ? 'Admin ' : 'User '}cancelled: {b.cancellationReason}
+                        </div>
+                      )}
                     </div>
-                    <div className={styles.bookingPurpose}>📋 {b.purpose}</div>
-                    {b.adminNote && (
-                      <div className={styles.adminNote}>💬 Admin: {b.adminNote}</div>
-                    )}
-                    {b.cancellationReason && (
-                      <div className={styles.cancellationNote}>🚫 {b.cancelledBy === 'admin' ? 'Admin ' : 'User '}cancelled: {b.cancellationReason}</div>
+                  </div>
+                  <div className={styles.bookingRight}>
+                    <span className={`badge ${STATUS_COLORS[b.status]}`}>{b.status}</span>
+                    {['pending', 'approved'].includes(b.status) && (
+                      <button className="btn-danger btn-sm" onClick={() => handleCancel(b._id)} disabled={cancelling === b._id}>
+                        {cancelling === b._id ? '...' : '🗑️ Cancel'}
+                      </button>
                     )}
                   </div>
-                </div>
-                <div className={styles.bookingRight}>
-                  <span className={`badge ${STATUS_COLORS[b.status]}`}>{b.status}</span>
-                  {['pending', 'approved'].includes(b.status) && (
-                    <button className="btn-danger btn-sm" onClick={() => handleCancel(b._id)} disabled={cancelling === b._id}>
-                      {cancelling === b._id ? '...' : '🗑️ Cancel'}
-                    </button>
-                  )}
-                  {b.status === 'approved' && (
-                    <Link href={`/messages?with=${b.user?._id}`} className="btn-secondary btn-sm">
-                      💬 Message
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -196,37 +270,21 @@ export default function MyBookingsPage() {
               <h2 className="modal-title">🗑️ Cancel Booking</h2>
               <button className="modal-close" onClick={() => setConfirmModal(false)}>✕</button>
             </div>
-            
+
             <div style={{ padding: '20px' }}>
-              <p style={{ marginBottom: 12, color: 'var(--text)' }}>
-                Are you sure you want to <strong>cancel</strong> this booking?
-              </p>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                Hall: <strong>{bookings.find(b => b._id === selectedForCancel)?.hall?.name}</strong> | {bookings.find(b => b._id === selectedForCancel)?.date}
-              </p>
-              <textarea 
-                placeholder="Reason for cancellation (optional)"
+              <p style={{ marginBottom: '16px' }}>Are you sure you want to cancel this booking?</p>
+              <textarea
                 value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                style={{ width: '100%', padding: 8, marginTop: 12, borderRadius: 4, border: '1px solid var(--border)', fontFamily: 'inherit', fontSize: 13 }}
-                rows={3}
+                onChange={e => setCancelReason(e.target.value)}
+                placeholder="Reason for cancellation (optional)"
+                style={{ width: '100%', padding: '8px', marginBottom: '16px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '80px' }}
               />
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 12, fontStyle: 'italic' }}>
-                This action cannot be undone.
-              </p>
             </div>
 
-            <div style={{ display: 'flex', gap: 12, padding: '20px', paddingTop: 0 }}>
-              <button className="btn-secondary" onClick={() => setConfirmModal(false)} disabled={cancelling === selectedForCancel} style={{ flex: 1 }}>
-                Keep Booking
-              </button>
-              <button 
-                className="btn-danger"
-                onClick={confirmCancel} 
-                disabled={cancelling === selectedForCancel}
-                style={{ flex: 1 }}
-              >
-                {cancelling === selectedForCancel ? '...' : '🗑️ Cancel Booking'}
+            <div style={{ padding: '0 20px 20px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" onClick={() => setConfirmModal(false)}>Cancel</button>
+              <button className="btn-danger" onClick={confirmCancel} disabled={cancelling}>
+                {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
               </button>
             </div>
           </div>

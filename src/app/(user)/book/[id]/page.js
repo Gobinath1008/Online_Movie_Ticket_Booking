@@ -1,16 +1,37 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from './booking.module.css';
 
 const TIME_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
 
-export default function BookPage() {
+const formatTime12h = (timeStr) => {
+  if (!timeStr) return '';
+  const [hourStr, minStr] = timeStr.split(':');
+  const hour = parseInt(hourStr);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${String(hour12).padStart(2, '0')}:${minStr} ${ampm}`;
+};
+
+function BookForm() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialDate = searchParams.get('date') || '';
+  const initialStart = searchParams.get('startTime') || '';
+  const initialEnd = searchParams.get('endTime') || '';
+
   const [hall, setHall] = useState(null);
-  const [form, setForm] = useState({ date: '', startTime: '', endTime: '', purpose: '', attendees: '1' });
+  const [form, setForm] = useState({
+    date: initialDate,
+    startTime: initialStart,
+    endTime: initialEnd,
+    purpose: '',
+    attendees: '1'
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
@@ -20,7 +41,7 @@ export default function BookPage() {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    fetch(`/api/halls/${id}`).then(r => r.json()).then(d => { setHall(d); setPageLoading(false); });
+    fetch(`/api/halls?id=${id}`).then(r => r.json()).then(d => { setHall(d); setPageLoading(false); });
   }, [id]);
 
   const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); };
@@ -43,7 +64,16 @@ export default function BookPage() {
     try {
       const res = await fetch('/api/bookings', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hall: id, ...form, attendees: parseInt(form.attendees) || 1 }),
+        body: JSON.stringify({
+          serviceType: 'hall',
+          serviceId: id,
+          hallDate: form.date,
+          hallStartTime: form.startTime,
+          hallEndTime: form.endTime,
+          purpose: form.purpose,
+          attendees: parseInt(form.attendees) || 1,
+          totalAmount: (hall?.pricePerHour || 500) * duration,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setSubmitError(data.message); return; }
@@ -95,7 +125,7 @@ export default function BookPage() {
                   {TIME_SLOTS.slice(0, -1).map(t => (
                     <button key={t} type="button"
                       className={`${styles.timeSlot} ${form.startTime === t ? styles.slotActive : ''}`}
-                      onClick={() => set('startTime', t)}>{t}</button>
+                      onClick={() => set('startTime', t)}>{formatTime12h(t)}</button>
                   ))}
                 </div>
                 {errors.startTime && <div className="error-msg">{errors.startTime}</div>}
@@ -107,7 +137,7 @@ export default function BookPage() {
                   {TIME_SLOTS.slice(1).map(t => (
                     <button key={t} type="button"
                       className={`${styles.timeSlot} ${form.endTime === t ? styles.slotActive : ''} ${form.startTime && t <= form.startTime ? styles.slotDisabled : ''}`}
-                      onClick={() => set('endTime', t)} disabled={!!form.startTime && t <= form.startTime}>{t}</button>
+                      onClick={() => set('endTime', t)} disabled={!!form.startTime && t <= form.startTime}>{formatTime12h(t)}</button>
                   ))}
                 </div>
                 {errors.endTime && <div className="error-msg">{errors.endTime}</div>}
@@ -148,8 +178,8 @@ export default function BookPage() {
                 <div className={styles.summaryRow}><span>Hall</span><strong>{hall?.name || '—'}</strong></div>
                 <div className={styles.summaryRow}><span>Location</span><strong>{hall?.location || '—'}</strong></div>
                 <div className={styles.summaryRow}><span>Date</span><strong>{form.date || '—'}</strong></div>
-                <div className={styles.summaryRow}><span>Start</span><strong>{form.startTime || '—'}</strong></div>
-                <div className={styles.summaryRow}><span>End</span><strong>{form.endTime || '—'}</strong></div>
+                <div className={styles.summaryRow}><span>Start</span><strong>{formatTime12h(form.startTime) || '—'}</strong></div>
+                <div className={styles.summaryRow}><span>End</span><strong>{formatTime12h(form.endTime) || '—'}</strong></div>
                 <div className={styles.summaryRow}><span>Duration</span><strong>{duration > 0 ? `${duration} hr` : '—'}</strong></div>
                 <div className={styles.summaryRow}><span>Attendees</span><strong>{form.attendees}</strong></div>
               </div>
@@ -161,5 +191,13 @@ export default function BookPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BookPage() {
+  return (
+    <Suspense fallback={<div className="spinner-wrap"><div className="spinner" /></div>}>
+      <BookForm />
+    </Suspense>
   );
 }

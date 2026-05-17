@@ -1,0 +1,39 @@
+import mongoose from 'mongoose';
+
+const GuestRoomSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  roomType: { type: String, enum: ['economy', 'standard', 'deluxe', 'family', 'suite'], required: true },
+  roomNumber: { type: String, required: true, unique: true, trim: true },
+  floor: { type: Number, required: true },
+  occupancy: { type: Number, required: true, min: 1 },
+  beds: {
+    single: Number,
+    double: Number,
+  },
+  pricePerDay: { type: Number, required: true, min: 0 },
+  pricePerNight: { type: Number, required: true, min: 0 },
+  amenities: [String],
+  description: { type: String, default: '' },
+  image: { type: String, default: '' },
+  images: [String],
+  status: { type: String, enum: ['available', 'occupied', 'cleaning', 'maintenance', 'blocked'], default: 'available' },
+  isActive: { type: Boolean, default: true },
+  location: { type: String, required: true },
+  address: { type: String, required: true },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  zipCode: { type: String, required: true },
+  features: [String],
+  wifi: { type: Boolean, default: true },
+  ac: { type: Boolean, default: true },
+  television: { type: Boolean, default: true },
+  hotWater: { type: Boolean, default: true },
+  balcony: { type: Boolean, default: false },
+  lastCleanedDate: Date,
+  cleaningSchedule: String,
+  currentCheckInGuest: mongoose.Schema.Types.ObjectId,
+  checkInDate: Date,
+  checkOutDate: Date,
+}, { timestamps: true });
+
+export default mongoose.models.GuestRoom || mongoose.model('GuestRoom', GuestRoomSchema);

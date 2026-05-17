@@ -6,9 +6,17 @@ import { requireAuth, requireAdmin } from '@/lib/middleware';
 export async function GET(request) {
   await connectDB();
   const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
   const search = searchParams.get('search');
   const minCapacity = searchParams.get('minCapacity');
   const all = searchParams.get('all');
+
+  // If id provided, return single hall
+  if (id) {
+    const hall = await Hall.findById(id);
+    if (!hall) return NextResponse.json({ message: 'Hall not found' }, { status: 404 });
+    return NextResponse.json(hall);
+  }
 
   let query = { isActive: true };
 

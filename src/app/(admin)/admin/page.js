@@ -1,141 +1,288 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import styles from './admin.module.css';
-
-const STATUS_COLORS = {
-  pending: 'var(--warning)', approved: 'var(--success)', rejected: 'var(--danger)',
-};
+import { motion } from 'framer-motion';
+import { format } from 'date-fns';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ halls: 0, total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats] = useState({ halls: 0, totalBookings: 0, pendingBookings: 0, approvedBookings: 0 });
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [hallsRes, bookingsRes] = await Promise.all([
-        fetch('/api/halls'), fetch('/api/bookings'),
-      ]);
-      const halls = await hallsRes.json();
-      const bookings = await bookingsRes.json();
-      const b = Array.isArray(bookings) ? bookings : [];
-      setStats({
-        halls: Array.isArray(halls) ? halls.length : 0,
-        total: b.length,
-        pending: b.filter(x => x.status === 'pending').length,
-        approved: b.filter(x => x.status === 'approved').length,
-        rejected: b.filter(x => x.status === 'rejected').length,
-      });
-      setRecent(b.slice(0, 6));
-      setLoading(false);
+      try {
+        const [hallsRes, bookingsRes, meRes] = await Promise.all([
+          fetch('/api/halls'),
+          fetch('/api/bookings?all=true'),
+          fetch('/api/auth/me')
+        ]);
+        const halls = await hallsRes.json();
+        const bookings = await bookingsRes.json();
+        const user = meRes.ok ? await meRes.json() : null;
+        setCurrentUser(user);
+
+        const b = Array.isArray(bookings) ? bookings : [];
+        setStats({
+          halls: Array.isArray(halls) ? halls.length : 0,
+          totalBookings: b.length,
+          pendingBookings: b.filter(x => x.status === 'pending').length,
+          approvedBookings: b.filter(x => x.status === 'approved').length,
+        });
+        setRecent(b.slice(0, 6));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchAll();
   }, []);
 
+const formatTime12h = (timeStr) => {
+  if (!timeStr) return '';
+  const [hourStr, minStr] = timeStr.split(':');
+  const hour = parseInt(hourStr);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${String(hour12).padStart(2, '0')}:${minStr} ${ampm}`;
+};
+
+  const getDetails = (b) => {
+    const rawDate = b.hallDate || b.vehiclePickupDate || b.roomCheckInDate || '';
+    const date = rawDate ? format(new Date(rawDate), 'MMM d, yyyy') : '—';
+    const startTimeStr = b.hallStartTime || b.vehiclePickupTime || b.roomCheckInTime || '';
+    const endTimeStr = b.hallEndTime || b.vehicleReturnTime || b.roomCheckOutTime || '';
+    const time = startTimeStr && endTimeStr ? `${formatTime12h(startTimeStr)} – ${formatTime12h(endTimeStr)}` : '';
+    const info = b.purpose || b.vehicleDetails?.description || b.roomPurpose || '';
+    return { date, time, info };
+  };
+
   const STAT_CARDS = [
-    { icon: '🏛️', label: 'Total Halls', value: stats.halls, color: 'var(--primary)' },
-    { icon: '📅', label: 'Total Bookings', value: stats.total, color: 'var(--accent)' },
-    { icon: '⏳', label: 'Pending', value: stats.pending, color: 'var(--warning)' },
-    { icon: '✅', label: 'Approved', value: stats.approved, color: 'var(--success)' },
+    { icon: '🏛️', label: 'Total Halls',       value: stats.halls,          color: '#7c6fff', glow: 'rgba(124,111,255,0.2)' },
+    { icon: '📅', label: 'Total Bookings',    value: stats.totalBookings,  color: '#4cc9f0', glow: 'rgba(76,201,240,0.2)'  },
+    { icon: '⏳', label: 'Pending Requests',  value: stats.pendingBookings, color: '#f39c12', glow: 'rgba(243,156,18,0.2)' },
+    { icon: '✅', label: 'Approved',          value: stats.approvedBookings,color: '#2ecc71', glow: 'rgba(46,204,113,0.2)' },
   ];
 
-  if (loading) return <div className="spinner-wrap"><div className="spinner" /></div>;
+  let QUICK_TOOLS = [
+    { href: '/admin/bookings?type=hall', icon: '📋', label: 'Manage Bookings', sub: 'Review & approve requests', color: '#7c6fff' },
+    { href: '/admin/calendar',           icon: '📅', label: 'Calendar View',   sub: 'Visual booking overview',  color: '#4cc9f0' },
+  ];
+  if (currentUser?.role === 'super-admin' || currentUser?.assignedServices?.includes('halls') || currentUser?.permissions?.hallAccess !== false) {
+    QUICK_TOOLS.push({ href: '/admin/halls', icon: '🏢', label: 'Halls Inventory', sub: 'Add or edit hall details', color: '#2ecc71' });
+  }
+  if (currentUser?.role === 'super-admin' || currentUser?.assignedServices?.includes('vehicles') || currentUser?.permissions?.vehicleAccess !== false) {
+    QUICK_TOOLS.push({ href: '/admin/vehicles', icon: '🚗', label: 'Vehicles Inventory', sub: 'Manage transport fleet', color: '#f39c12' });
+  }
+  if (currentUser?.role === 'super-admin' || currentUser?.assignedServices?.includes('rooms') || currentUser?.permissions?.guestRoomAccess !== false) {
+    QUICK_TOOLS.push({ href: '/admin/rooms', icon: '🏨', label: 'Rooms Inventory', sub: 'Manage guest rooms', color: '#e74c3c' });
+  }
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a0a12', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div style={{ width: 44, height: 44, border: '3px solid rgba(124,111,255,0.2)', borderTopColor: '#7c6fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+        <p style={{ color: 'rgba(180,180,220,0.6)', fontSize: 14, fontWeight: 600 }}>Loading Dashboard…</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.page}>
-      <div className="container">
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <div className={styles.adminBadge}>🛡️ ADMIN PANEL</div>
-            <h1 className={styles.title}>Dashboard</h1>
-            <p className={styles.subtitle}>KIOT Hall Booking Management System</p>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #070711 0%, #0f0c28 40%, #070b1a 100%)' }}>
+
+      {/* ── Top Header ── */}
+      <header style={{
+        background: 'rgba(10,10,18,0.85)', backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        position: 'sticky', top: 0, zIndex: 20,
+      }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 68 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'linear-gradient(135deg, #7c6fff, #4cc9f0)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+              boxShadow: '0 4px 16px rgba(124,111,255,0.4)',
+            }}>🏛️</div>
+            <div>
+              <h1 style={{ fontSize: 17, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>Admin Portal</h1>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px' }}>Hall Management</p>
+            </div>
           </div>
-          <div className={styles.quickActions}>
-            <Link href="/admin/halls" className="btn-secondary">🏛️ Manage Halls</Link>
-            <Link href="/admin/bookings?status=pending" className="btn-primary">⏳ Review Pending ({stats.pending})</Link>
-          </div>
+          <Link href="/admin/bookings?status=pending">
+            <motion.button
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+                background: 'linear-gradient(135deg, #7c6fff, #5a50cc)',
+                color: '#fff', fontSize: 13, fontWeight: 700,
+                borderRadius: 10, boxShadow: '0 4px 16px rgba(124,111,255,0.4)',
+                border: 'none', cursor: 'pointer',
+              }}
+            >
+              ⏳ Review Pending ({stats.pendingBookings})
+            </motion.button>
+          </Link>
         </div>
+      </header>
+
+      <main style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 24px 80px' }}>
+
+        {/* Welcome */}
+        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 36 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', marginBottom: 6 }}>Welcome back, Admin 👋</h2>
+          <p style={{ color: 'rgba(180,180,220,0.65)', fontSize: 15 }}>Here's an overview of your hall bookings and management tools.</p>
+        </motion.div>
 
         {/* Stats */}
-        <div className="stats-grid">
-          {STAT_CARDS.map(s => (
-            <div key={s.label} className="stat-card" style={{ borderTopColor: s.color }}>
-              <div className="stat-icon">{s.icon}</div>
-              <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
-              <div className="stat-label">{s.label}</div>
-            </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px,1fr))', gap: 16, marginBottom: 40 }}>
+          {STAT_CARDS.map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+              style={{
+                background: 'rgba(255,255,255,0.04)', border: `1px solid rgba(255,255,255,0.07)`,
+                borderRadius: 20, padding: '24px', backdropFilter: 'blur(16px)',
+                borderTop: `3px solid ${s.color}`,
+                transition: 'all 0.3s ease',
+              }}
+              whileHover={{ y: -4, boxShadow: `0 16px 40px rgba(0,0,0,0.4), 0 0 30px ${s.glow}` }}
+            >
+              <div style={{ fontSize: 30, marginBottom: 12, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}>{s.icon}</div>
+              <div style={{ fontSize: 36, fontWeight: 900, color: '#fff', letterSpacing: '-1.5px', marginBottom: 4 }}>{s.value}</div>
+              <div style={{ fontSize: 11, color: 'rgba(180,180,220,0.6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>{s.label}</div>
+            </motion.div>
           ))}
         </div>
 
-        {/* Quick actions grid */}
-        <div className={styles.actionsSection}>
-          <h2 className={styles.sectionTitle}>Quick Actions</h2>
-          <div className={styles.actionsGrid}>
-            {[
-              { href: '/admin/halls', icon: '🏛️', label: 'Manage Halls', sub: 'Add, edit, deactivate halls', bg: '#1A1050' },
-              { href: '/admin/bookings', icon: '📋', label: 'All Bookings', sub: 'View all booking requests', bg: '#0D1F40' },
-              { href: '/admin/bookings?status=pending', icon: '⏳', label: `Pending (${stats.pending})`, sub: 'Approve or reject requests', bg: '#2A1500' },
-              { href: '/admin/halls', icon: '➕', label: 'Add New Hall', sub: 'Register a new hall', bg: '#0D2A1A' },
-            ].map(a => (
-              <Link key={a.href + a.label} href={a.href} className={styles.actionCard} style={{ background: a.bg }}>
-                <div className={styles.actionIcon}>{a.icon}</div>
-                <div className={styles.actionLabel}>{a.label}</div>
-                <div className={styles.actionSub}>{a.sub}</div>
+        {/* Quick Tools */}
+        <section style={{ marginBottom: 40 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 20 }}>Quick Tools</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px,1fr))', gap: 16 }}>
+            {QUICK_TOOLS.map((t, i) => (
+              <Link key={t.href} href={t.href}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.08 }}
+                  whileHover={{ y: -5, boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px ${t.color}40` }}
+                  style={{
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 20, padding: '28px 24px', backdropFilter: 'blur(16px)',
+                    cursor: 'pointer', transition: 'all 0.3s ease', display: 'flex', flexDirection: 'column', gap: 8,
+                  }}
+                >
+                  <div style={{
+                    width: 52, height: 52, borderRadius: 14, marginBottom: 8,
+                    background: `${t.color}18`, border: `1px solid ${t.color}30`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26,
+                  }}>{t.icon}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>{t.label}</div>
+                  <div style={{ fontSize: 13, color: 'rgba(180,180,220,0.6)' }}>{t.sub}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: t.color, marginTop: 8 }}>Open →</div>
+                </motion.div>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Recent bookings */}
-        <div className={styles.recentSection}>
-          <div className={styles.recentHeader}>
-            <h2 className={styles.sectionTitle}>Recent Booking Requests</h2>
-            <Link href="/admin/bookings" className={styles.seeAll}>See all →</Link>
+        {/* Recent Bookings */}
+        <section>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>Recent Booking Requests</h3>
+            <Link href="/admin/bookings">
+              <span style={{
+                fontSize: 13, color: '#7c6fff', fontWeight: 700, padding: '7px 16px',
+                background: 'rgba(124,111,255,0.1)', borderRadius: 9, border: '1px solid rgba(124,111,255,0.25)',
+                transition: 'all 0.2s', cursor: 'pointer',
+              }}>View All</span>
+            </Link>
           </div>
-          {recent.length === 0 ? (
-            <div className="empty-state" style={{ minHeight: 120 }}>
-              <div className="empty-title">No bookings yet</div>
-            </div>
-          ) : (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Hall</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Purpose</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent.map(b => (
-                    <tr key={b._id}>
-                      <td>
-                        <div className={styles.userCell}>
-                          <div className={styles.userAvatar}>{b.user?.name?.[0]?.toUpperCase()}</div>
-                          <div>
-                            <div style={{ fontWeight: 600 }}>{b.user?.name}</div>
-                            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{b.user?.department || b.user?.role}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>{b.hall?.name}</td>
-                      <td>{b.date}</td>
-                      <td style={{ whiteSpace: 'nowrap' }}>{b.startTime}–{b.endTime}</td>
-                      <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.purpose}</td>
-                      <td><span className={`badge badge-${b.status}`}>{b.status}</span></td>
+
+          <div style={{
+            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(16px)',
+          }}>
+            {recent.length === 0 ? (
+              <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: 52, marginBottom: 16, opacity: 0.5 }}>📭</div>
+                <p style={{ color: 'rgba(180,180,220,0.5)', fontSize: 15 }}>No bookings yet. They'll appear here when submitted.</p>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      {['User Details', 'Schedule', 'Purpose', 'Status', ''].map(h => (
+                        <th key={h} style={{ padding: '14px 18px', fontSize: 11, fontWeight: 700, color: 'rgba(180,180,220,0.5)', textTransform: 'uppercase', letterSpacing: '0.8px', textAlign: 'left' }}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
+                  </thead>
+                  <tbody>
+                    {recent.map((b) => {
+                      const d = getDetails(b);
+                      const statusColor = b.status === 'approved' ? '#2ecc71' : b.status === 'pending' ? '#f39c12' : '#e74c3c';
+                      const statusBg = b.status === 'approved' ? 'rgba(46,204,113,0.1)' : b.status === 'pending' ? 'rgba(243,156,18,0.1)' : 'rgba(231,76,60,0.1)';
+                      return (
+                        <tr key={b._id} style={{ borderTop: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,111,255,0.05)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <td style={{ padding: '14px 18px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div style={{
+                                width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                                background: 'linear-gradient(135deg, #7c6fff, #4cc9f0)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: '#fff', fontWeight: 800, fontSize: 15,
+                              }}>{b.user?.name?.[0]?.toUpperCase() || '?'}</div>
+                              <div>
+                                <div style={{ fontWeight: 700, color: '#fff', fontSize: 14 }}>{b.user?.name || 'Unknown'}</div>
+                                <div style={{ fontSize: 12, color: 'rgba(180,180,220,0.5)' }}>{b.user?.email || 'N/A'}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '14px 18px' }}>
+                            <div style={{ fontWeight: 600, color: '#fff', fontSize: 14 }}>{d.date}</div>
+                            {d.time && <div style={{ fontSize: 12, color: 'rgba(180,180,220,0.5)', marginTop: 2 }}>{d.time}</div>}
+                          </td>
+                          <td style={{ padding: '14px 18px' }}>
+                            <div style={{ fontSize: 13, color: 'rgba(200,200,240,0.7)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.info || '—'}</div>
+                          </td>
+                          <td style={{ padding: '14px 18px' }}>
+                            <span style={{
+                              padding: '4px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+                              textTransform: 'uppercase', letterSpacing: '0.5px',
+                              color: statusColor, background: statusBg,
+                              border: `1px solid ${statusColor}40`,
+                            }}>{b.status}</span>
+                          </td>
+                          <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                            <Link href={`/admin/bookings/${b._id}`}>
+                              <span style={{
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                width: 32, height: 32, borderRadius: 8,
+                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                color: 'rgba(180,180,220,0.5)', fontSize: 14, cursor: 'pointer',
+                                transition: 'all 0.2s',
+                              }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,111,255,0.15)'; e.currentTarget.style.color = '#7c6fff'; e.currentTarget.style.borderColor = 'rgba(124,111,255,0.3)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(180,180,220,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                              >›</span>
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

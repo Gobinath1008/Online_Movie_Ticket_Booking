@@ -1,61 +1,313 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Booking from '@/models/Booking';
-import User from '@/models/User';
+import HallBooking from '@/models/HallBooking';
+import VehicleBooking from '@/models/VehicleBooking';
+import RoomBooking from '@/models/RoomBooking';
 import Hall from '@/models/Hall';
-import { requireAuth, requireAdmin } from '@/lib/middleware';
+import Vehicle from '@/models/Vehicle';
+import GuestRoom from '@/models/GuestRoom';
+import User from '@/models/User'; // Ensure User schema is registered before population
+import { requireAuth } from '@/lib/middleware';
 
-const hasOverlap = (es, ee, ns, ne) => ns < ee && ne > es;
+const hasOverlap = (start1, end1, start2, end2) => {
+  const dStart1 = new Date(start1);
+  const dEnd1 = new Date(end1);
+  const dStart2 = new Date(start2);
+  const dEnd2 = new Date(end2);
+  return dStart2 < dEnd1 && dEnd2 > dStart1;
+};
 
 export async function GET(request) {
-  const { user, error } = await requireAdmin(request);
+  const { user, error } = await requireAuth(request);
   if (error) return error;
+
   await connectDB();
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
-  const date = searchParams.get('date');
+  const serviceType = searchParams.get('serviceType');
+  const userId = searchParams.get('userId');
+  const all = searchParams.get('all') === 'true';
+
   let query = {};
+
+  if (!all && user.role !== 'super-admin' && user.role !== 'admin') {
+    query.user = user.id;
+  } else if (all && user.role !== 'super-admin' && user.role !== 'admin') {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+  }
+
   if (status) query.status = status;
-  if (date) query.date = date;
-  const bookings = await Booking.find(query)
-    .populate('user', 'name email department role')
-    .populate('hall', 'name location capacity')
-    .sort({ createdAt: -1 });
-  return NextResponse.json(bookings);
+  if (userId && (user.role !== 'user' && user.role !== 'customer')) query.user = userId;
+
+  let halls = [], vehicles = [], rooms = [];
+  const populateOpts = [
+    { path: 'user', select: 'name email phone' },
+    { path: 'actionBy', select: 'name' }
+  ];
+
+  if (!serviceType || serviceType === 'hall') {
+    halls = await HallBooking.find(query).populate(populateOpts).sort({ createdAt: -1 });
+  }
+  if (!serviceType || serviceType === 'vehicle') {
+    vehicles = await VehicleBooking.find(query).populate(populateOpts).sort({ createdAt: -1 });
+  }
+  if (!serviceType || serviceType === 'room') {
+    rooms = await RoomBooking.find(query).populate(populateOpts).sort({ createdAt: -1 });
+  }
+
+  const combined = [...halls, ...vehicles, ...rooms].sort((a, b) => b.createdAt - a.createdAt);
+  return NextResponse.json(combined);
 }
 
 export async function POST(request) {
   const { user, error } = await requireAuth(request);
   if (error) return error;
+
   await connectDB();
-  const { hall, date, startTime, endTime, purpose, attendees } = await request.json();
 
-  if (!hall || !date || !startTime || !endTime || !purpose)
-    return NextResponse.json({ message: 'All fields are required' }, { status: 400 });
-  if (startTime >= endTime)
-    return NextResponse.json({ message: 'Start time must be before end time' }, { status: 400 });
+  // Fetch user with permissions
+  const currentUser = await User.findById(user.id);
+  if (!currentUser) {
+    return NextResponse.json({ message: 'User not found' }, { status: 404 });
+  }
 
-  // Conflict detection - approved bookings
-  const approved = await Booking.find({ hall, date, status: 'approved' });
-  for (const b of approved) {
-    if (hasOverlap(b.startTime, b.endTime, startTime, endTime)) {
+  // Check if user is blocked
+  if (currentUser.permissions?.blocked) {
+    return NextResponse.json({
+      message: `Your booking privileges are suspended. Reason: ${currentUser.permissions.blockReason || 'Contact admin for details'}`
+    }, { status: 403 });
+  }
+
+  // Check if user can book
+  if (currentUser.permissions?.canBook === false) {
+    return NextResponse.json({ message: 'You do not have booking permissions. Contact admin.' }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const {
+    serviceType,
+    serviceId,
+    hallDate, hallStartTime, hallEndTime, purpose, attendees,
+    vehiclePickupDate, vehicleReturnDate, vehiclePickupTime, vehicleReturnTime, withDriver, fuelOption,
+    roomCheckInDate, roomCheckOutDate, roomCheckInTime, roomCheckOutTime, numberOfGuests,
+    totalAmount,
+    guestName, guestEmail, guestPhone
+  } = body;
+
+  if (!serviceType || !serviceId) {
+    return NextResponse.json({ message: 'Service type and service ID are required' }, { status: 400 });
+  }
+
+  // Check service-specific permissions
+  if (serviceType === 'hall' && currentUser.permissions?.hallAccess === false) {
+    return NextResponse.json({ message: 'You do not have hall booking access. Contact admin for permissions.' }, { status: 403 });
+  }
+  if (serviceType === 'vehicle' && currentUser.permissions?.vehicleAccess === false) {
+    return NextResponse.json({ message: 'You do not have vehicle booking access. Contact admin for permissions.' }, { status: 403 });
+  }
+  if (serviceType === 'room' && currentUser.permissions?.guestRoomAccess === false) {
+    return NextResponse.json({ message: 'You do not have guest room booking access. Contact admin for permissions.' }, { status: 403 });
+  }
+
+  // Check booking limit across all three collections
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const [hallCounts, vehicleCounts, roomCounts] = await Promise.all([
+    HallBooking.countDocuments({
+      user: user.id,
+      createdAt: { $gte: startOfMonth },
+      status: { $nin: ['cancelled', 'rejected'] }
+    }),
+    VehicleBooking.countDocuments({
+      user: user.id,
+      createdAt: { $gte: startOfMonth },
+      status: { $nin: ['cancelled', 'rejected'] }
+    }),
+    RoomBooking.countDocuments({
+      user: user.id,
+      createdAt: { $gte: startOfMonth },
+      status: { $nin: ['cancelled', 'rejected'] }
+    })
+  ]);
+  const monthlyBookings = hallCounts + vehicleCounts + roomCounts;
+
+  const bookingLimit = currentUser.permissions?.bookingLimit || 10;
+  if (monthlyBookings >= bookingLimit) {
+    return NextResponse.json({ message: `You have reached your monthly booking limit (${bookingLimit}). Contact admin for more bookings.` }, { status: 403 });
+  }
+
+  // Validate service ID exists
+  let service;
+  if (serviceType === 'hall') {
+    service = await Hall.findById(serviceId);
+    if (!hallDate || !hallStartTime || !hallEndTime || !purpose) {
+      return NextResponse.json({ message: 'Hall booking requires date, times, and purpose' }, { status: 400 });
+    }
+    
+    // Validate date is not in the past
+    const bookingDate = new Date(hallDate);
+    if (bookingDate < new Date()) {
+      return NextResponse.json({ message: 'Cannot book for past dates.' }, { status: 400 });
+    }
+
+    // Validate start time is before end time
+    if (hallStartTime >= hallEndTime) {
+      return NextResponse.json({ message: 'Start time must be before end time.' }, { status: 400 });
+    }
+  } else if (serviceType === 'vehicle') {
+    service = await Vehicle.findById(serviceId);
+    if (!vehiclePickupDate || !vehicleReturnDate) {
+      return NextResponse.json({ message: 'Vehicle booking requires pickup and return dates' }, { status: 400 });
+    }
+    
+    // Validate dates
+    const pickupDate = new Date(vehiclePickupDate);
+    const returnDate = new Date(vehicleReturnDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (pickupDate < today) {
+      return NextResponse.json({ message: 'Pickup date cannot be in the past.' }, { status: 400 });
+    }
+    
+    if (returnDate <= pickupDate) {
+      return NextResponse.json({ message: 'Return date must be after pickup date.' }, { status: 400 });
+    }
+  } else if (serviceType === 'room') {
+    service = await GuestRoom.findById(serviceId);
+    if (!roomCheckInDate || !roomCheckOutDate) {
+      return NextResponse.json({ message: 'Room booking requires check-in and check-out dates' }, { status: 400 });
+    }
+    
+    // Validate dates
+    const checkInDate = new Date(roomCheckInDate);
+    const checkOutDate = new Date(roomCheckOutDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (checkInDate < today) {
+      return NextResponse.json({ message: 'Check-in date cannot be in the past.' }, { status: 400 });
+    }
+    
+    if (checkOutDate <= checkInDate) {
+      return NextResponse.json({ message: 'Check-out date must be after check-in date.' }, { status: 400 });
+    }
+  }
+
+  if (!service) {
+    return NextResponse.json({ message: 'Service not found' }, { status: 404 });
+  }
+
+  // Check for conflicts based on service type
+  if (serviceType === 'hall') {
+    const overlapping = await HallBooking.findOne({
+      serviceId,
+      hallDate,
+      status: { $in: ['approved', 'pending'] },
+      hallStartTime: { $lt: hallEndTime },
+      hallEndTime: { $gt: hallStartTime }
+    });
+
+    if (overlapping) {
       return NextResponse.json({
-        message: `Hall already booked from ${b.startTime} to ${b.endTime} on ${date}`
+        message: 'Time slot already booked. Please choose a different time.',
+        status: 409
       }, { status: 409 });
     }
-  }
+  } else if (serviceType === 'vehicle') {
+    const conflicts = await VehicleBooking.find({
+      serviceId,
+      status: { $in: ['approved', 'pending'] }
+    });
 
-  // Conflict detection - pending bookings
-  const pending = await Booking.find({ hall, date, status: 'pending' });
-  for (const b of pending) {
-    if (hasOverlap(b.startTime, b.endTime, startTime, endTime)) {
-      return NextResponse.json({ message: 'A pending booking exists for this time slot' }, { status: 409 });
+    const newStart = vehiclePickupTime ? `${vehiclePickupDate}T${vehiclePickupTime}:00` : `${vehiclePickupDate}T00:00:00`;
+    const newEnd = vehicleReturnTime ? `${vehicleReturnDate}T${vehicleReturnTime}:00` : `${vehicleReturnDate}T23:59:59`;
+
+    for (const booking of conflicts) {
+      const existingStartStr = booking.vehiclePickupTime ? `${booking.vehiclePickupDate}T${booking.vehiclePickupTime}:00` : `${booking.vehiclePickupDate}T00:00:00`;
+      const existingEndStr = booking.vehicleReturnTime ? `${booking.vehicleReturnDate}T${booking.vehicleReturnTime}:00` : `${booking.vehicleReturnDate}T23:59:59`;
+
+      if (hasOverlap(newStart, newEnd, existingStartStr, existingEndStr)) {
+        return NextResponse.json({
+          message: 'Vehicle already booked for these dates.',
+          status: 409
+        }, { status: 409 });
+      }
+    }
+  } else if (serviceType === 'room') {
+    const conflicts = await RoomBooking.find({
+      serviceId,
+      status: { $in: ['approved', 'pending'] }
+    });
+
+    const newStart = roomCheckInTime ? `${roomCheckInDate}T${roomCheckInTime}:00` : `${roomCheckInDate}T14:00:00`;
+    const newEnd = roomCheckOutTime ? `${roomCheckOutDate}T${roomCheckOutTime}:00` : `${roomCheckOutDate}T12:00:00`;
+
+    for (const booking of conflicts) {
+      const existingStartStr = booking.roomCheckInTime ? `${booking.roomCheckInDate}T${booking.roomCheckInTime}:00` : `${booking.roomCheckInDate}T14:00:00`;
+      const existingEndStr = booking.roomCheckOutTime ? `${booking.roomCheckOutDate}T${booking.roomCheckOutTime}:00` : `${booking.roomCheckOutDate}T12:00:00`;
+
+      if (hasOverlap(newStart, newEnd, existingStartStr, existingEndStr)) {
+        return NextResponse.json({
+          message: 'Room already booked for these dates.',
+          status: 409
+        }, { status: 409 });
+      }
     }
   }
 
-  const booking = await Booking.create({
-    user: user.id, hall, date, startTime, endTime, purpose, attendees: attendees || 1,
-  });
-  const populated = await booking.populate(['user', 'hall']);
+  let createdBooking;
+  if (serviceType === 'hall') {
+    createdBooking = await HallBooking.create({
+      user: user.id,
+      serviceType,
+      serviceId,
+      hallDate,
+      hallStartTime,
+      hallEndTime,
+      purpose,
+      attendees,
+      totalAmount: totalAmount || 0,
+      guestName: guestName || currentUser.name,
+      guestEmail: guestEmail || currentUser.email,
+      guestPhone: guestPhone || currentUser.phone,
+    });
+  } else if (serviceType === 'vehicle') {
+    createdBooking = await VehicleBooking.create({
+      user: user.id,
+      serviceType,
+      serviceId,
+      vehiclePickupDate,
+      vehicleReturnDate,
+      vehiclePickupTime,
+      vehicleReturnTime,
+      withDriver,
+      fuelOption,
+      totalAmount: totalAmount || 0,
+      guestName: guestName || currentUser.name,
+      guestEmail: guestEmail || currentUser.email,
+      guestPhone: guestPhone || currentUser.phone,
+    });
+  } else if (serviceType === 'room') {
+    createdBooking = await RoomBooking.create({
+      user: user.id,
+      serviceType,
+      serviceId,
+      roomCheckInDate,
+      roomCheckOutDate,
+      roomCheckInTime,
+      roomCheckOutTime,
+      numberOfGuests,
+      totalAmount: totalAmount || 0,
+      guestName: guestName || currentUser.name,
+      guestEmail: guestEmail || currentUser.email,
+      guestPhone: guestPhone || currentUser.phone,
+    });
+  }
+
+  const populated = await createdBooking.populate('user', 'name email phone');
   return NextResponse.json(populated, { status: 201 });
 }

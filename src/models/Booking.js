@@ -2,19 +2,77 @@ import mongoose from 'mongoose';
 
 const BookingSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  hall: { type: mongoose.Schema.Types.ObjectId, ref: 'Hall', required: true },
-  date: { type: String, required: true },
-  startTime: { type: String, required: true },
-  endTime: { type: String, required: true },
-  purpose: { type: String, required: true, trim: true },
-  attendees: { type: Number, default: 1 },
-  status: { type: String, enum: ['pending', 'approved', 'rejected', 'cancelled'], default: 'pending' },
-  adminNote: { type: String, default: '' },
+  serviceType: { type: String, enum: ['hall', 'vehicle', 'room'], required: true },
+  serviceId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Reference to Hall, Vehicle, or GuestRoom
+  
+  // Hall booking fields
+  hallDate: String,
+  hallStartTime: String,
+  hallEndTime: String,
+  purpose: String,
+  attendees: Number,
+
+  // Vehicle booking fields
+  vehiclePickupDate: String,
+  vehicleReturnDate: String,
+  vehiclePickupTime: String,
+  vehicleReturnTime: String,
+  pickupLocation: String,
+  returnLocation: String,
+  withDriver: { type: Boolean, default: false },
+  fuelOption: { type: String, enum: ['empty', 'full'], default: 'empty' },
+  mileage: Number,
+
+  // Room booking fields
+  roomCheckInDate: String,
+  roomCheckOutDate: String,
+  roomCheckInTime: { type: String, default: '14:00' },
+  roomCheckOutTime: { type: String, default: '12:00' },
+  numberOfGuests: Number,
+  numberOfRooms: { type: Number, default: 1 },
+  specialRequests: String,
+
+  // Common fields
+  status: { type: String, enum: ['pending', 'approved', 'rejected', 'cancelled', 'completed'], default: 'pending' },
+  paymentStatus: { type: String, enum: ['pending', 'completed', 'failed', 'refunded'], default: 'pending' },
+  totalAmount: { type: Number, required: true },
+  guestName: String,
+  guestEmail: String,
+  guestPhone: String,
+
+  // Admin fields
+  adminNote: String,
+  actionBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Admin who approved/rejected
+  actionAt: Date,
   cancelledBy: { type: String, enum: ['user', 'admin'], default: null },
-  cancellationReason: { type: String, default: '' },
-  cancelledAt: { type: Date, default: null },
+  cancellationReason: String,
+  cancelledAt: Date,
+
+  // Payment fields
+  paymentId: String,
+  paymentMethod: { type: String, default: 'razorpay' },
+  invoice: String,
+
+  // Smart Calendar fields
+  department: String,
+  timeSlotType: { type: String, enum: ['hourly', 'custom', 'full-day'], default: 'hourly' },
+  recurringBooking: {
+    isRecurring: { type: Boolean, default: false },
+    recurrenceType: { type: String, enum: ['daily', 'weekly', 'monthly'] },
+    endDate: String
+  },
+  blockedDate: { type: Boolean, default: false },
+  blockedReason: { type: String },
+  overrideBooking: { type: Boolean, default: false }, // Admin override flag
+
 }, { timestamps: true });
 
-BookingSchema.index({ hall: 1, date: 1, status: 1 });
+BookingSchema.index({ user: 1, createdAt: -1 });
+BookingSchema.index({ serviceId: 1, status: 1 });
+BookingSchema.index({ serviceType: 1, status: 1 });
+BookingSchema.index({ serviceId: 1, hallDate: 1 });
+BookingSchema.index({ serviceId: 1, vehiclePickupDate: 1 });
+BookingSchema.index({ serviceId: 1, roomCheckInDate: 1 });
+BookingSchema.index({ department: 1 });
 
 export default mongoose.models.Booking || mongoose.model('Booking', BookingSchema);
