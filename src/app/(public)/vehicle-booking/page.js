@@ -117,74 +117,19 @@ export default function VehicleBookingPage() {
         animate={{ opacity: 1 }}
         style={{ marginBottom: '24px' }}
       >
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
-          <div style={{ flex: '1 1 300px', position: 'relative' }}>
-            <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px' }}>🔍</span>
-            <input
-              type="text"
-              placeholder="Search vehicles by name, model..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{
-                width: '100%', padding: '14px 14px 14px 48px', borderRadius: '12px',
-                border: '1px solid #e5e7eb', fontSize: '15px', background: '#fff'
-              }}
-            />
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
+        <div style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px' }}>🔍</span>
+          <input
+            type="text"
+            placeholder="Search vehicles by name, model..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
             style={{
-              padding: '14px 20px', borderRadius: '12px', border: '1px solid #e5e7eb',
-              background: showFilters ? '#6C63FF' : '#fff', color: showFilters ? '#fff' : '#374151',
-              fontWeight: '500', cursor: 'pointer'
+              width: '100%', padding: '14px 14px 14px 48px', borderRadius: '12px',
+              border: '1px solid #e5e7eb', fontSize: '15px', background: '#fff'
             }}
-          >
-            🔽 Filters {showFilters ? '(Active)' : ''}
-          </button>
+          />
         </div>
-
-        {showFilters && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            style={{
-              display: 'flex', gap: '12px', flexWrap: 'wrap', padding: '16px',
-              background: '#f8f9fa', borderRadius: '12px', marginBottom: '16px'
-            }}
-          >
-            <select
-              value={typeFilter}
-              onChange={e => setTypeFilter(e.target.value)}
-              style={{
-                padding: '10px 16px', borderRadius: '8px', border: '1px solid #e5e7eb',
-                fontSize: '14px', background: '#fff', minWidth: '150px'
-              }}
-            >
-              {VEHICLE_TYPES.map(t => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
-            <input
-              type="text"
-              placeholder="City"
-              value={cityFilter}
-              onChange={e => setCityFilter(e.target.value)}
-              style={{
-                padding: '10px 16px', borderRadius: '8px', border: '1px solid #e5e7eb',
-                fontSize: '14px', background: '#fff', minWidth: '150px'
-              }}
-            />
-            <button
-              onClick={() => { setTypeFilter(''); setCityFilter(''); }}
-              style={{
-                padding: '10px 16px', borderRadius: '8px', border: 'none',
-                background: '#e5e7eb', color: '#374151', fontSize: '14px', cursor: 'pointer'
-              }}
-            >
-              Clear
-            </button>
-          </motion.div>
-        )}
       </motion.div>
 
       {/* Calendar Section */}
