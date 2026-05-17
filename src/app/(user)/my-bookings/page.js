@@ -235,7 +235,6 @@ const formatTime12h = (timeStr) => {
                       <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '6px' }}>
                         👤 <strong>{b.guestName || b.user?.name || 'Unknown'}</strong>
                         {(b.guestPhone || b.user?.phone) ? ` • 📞 ${b.guestPhone || b.user?.phone}` : ''}
-                        {(b.guestEmail || b.user?.email) ? ` • ✉️ ${b.guestEmail || b.user?.email}` : ''}
                       </div>
                       {b.adminNote && (
                         <div className={styles.adminNote}>💬 Admin: {b.adminNote}</div>
