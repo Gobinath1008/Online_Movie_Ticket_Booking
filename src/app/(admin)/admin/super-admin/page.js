@@ -430,7 +430,7 @@ export default function SuperAdminDashboard() {
                       <tr key={booking._id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-medium text-slate-900 text-sm">{booking.user?.name || booking.guestName}</div>
-                          <div className="text-xs text-slate-500">{booking.user?.email || booking.guestEmail}</div>
+                          <div className="text-xs text-slate-500">{booking.user?.department || booking.user?.role || 'Guest'}</div>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-xs font-medium text-slate-700 capitalize flex items-center gap-1.5">

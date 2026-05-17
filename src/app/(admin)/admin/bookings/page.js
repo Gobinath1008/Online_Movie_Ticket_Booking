@@ -183,7 +183,7 @@ function ManageBookingsContent() {
                     <div className={styles.avatar}>{b.user?.name?.[0]?.toUpperCase()}</div>
                     <div>
                       <div className={styles.userName}>{b.user?.name}</div>
-                      <div className={styles.userMeta}>{b.user?.email} • {b.user?.department || b.user?.role}</div>
+                      <div className={styles.userMeta}>{b.user?.department || b.user?.role}</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

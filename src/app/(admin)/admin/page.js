@@ -240,7 +240,7 @@ const formatTime12h = (timeStr) => {
                               }}>{b.user?.name?.[0]?.toUpperCase() || '?'}</div>
                               <div>
                                 <div style={{ fontWeight: 700, color: '#fff', fontSize: 14 }}>{b.user?.name || 'Unknown'}</div>
-                                <div style={{ fontSize: 12, color: 'rgba(180,180,220,0.5)' }}>{b.user?.email || 'N/A'}</div>
+                                <div style={{ fontSize: 12, color: 'rgba(180,180,220,0.5)' }}>{b.user?.department || b.user?.role || 'User'}</div>
                               </div>
                             </div>
                           </td>
