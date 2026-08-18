@@ -1,0 +1,65 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@gmail.com",
+      "username": "admin",
+      "password": "123456",
+      "role": "admin"
+    },
+    {
+      "id": 1775808409048,
+      "username": "gobi",
+      "name": "Gobinath S",
+      "email": "gobi@gmail.com",
+      "password": "gobi1234",
+      "role": "customer"
+    },
+    {
+      "id": 1776840043240,
+      "username": "gobinath",
+      "name": "Gobinath S",
+      "email": "gobiUK@gmail.com",
+      "password": "123456",
+      "role": "customer"
+    }
+  ],
+  "bookings": [
+    {
+      "id": 1776841657353,
+      "movieId": 1776835561992,
+      "movieName": "Jananayagan",
+      "theater": "INOX",
+      "date": "23-04-2026",
+      "time": "6:00 AM",
+      "seats": [
+        "C3",
+        "A1",
+        "B2",
+        "D4",
+        "E5",
+        "F6",
+        "E7",
+        "D8",
+        "C7",
+        "B6",
+        "A5",
+        "B4",
+        "D2",
+        "E1",
+        "F2",
+        "E3",
+        "C5",
+        "A7",
+        "B8",
+        "D6",
+        "F4"
+      ],
+      "total": 3150,
+      "userId": 1775808409048,
+      "userName": "Gobinath S",
+      "userEmail": "gobi@gmail.com",
+      "bookedAt": "2026-04-22T07:07:37.353Z"
+    }
+  ]
+}
