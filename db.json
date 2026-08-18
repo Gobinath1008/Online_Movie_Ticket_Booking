@@ -9,7 +9,7 @@
     },
     {
       "id": 2,
-      "username": "user1",
+      "username": "user",
       "email": "user@example.com",
       "password": "user123",
       "role": "customer"
