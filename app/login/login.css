@@ -141,10 +141,16 @@
 
 .signup-btn {
   background: rgba(232, 154, 36, 0.1);
-  color: #e89a24 !important;
+  color:  #faf7f3 !important;
   border: 2px solid #e89a24 !important;
   margin: 0 !important;
   font-weight: 600;
   transition: all 0.3s ease;
+}
+
+.signup-btn:hover {
+  
+  color: #f5f4f4 !important;
+  border-color: #f5a623 !important;
 }
 
