@@ -79,7 +79,7 @@ export default function LoginPage() {
       <form className="login-box" onSubmit={handleLogin}>
         <h2>Login</h2>
 
-        <div style={{ marginBottom: "15px" }}>
+        <div style={{ marginBottom: "5px" }}>
           <input
             type="text"
             placeholder="Enter Email or Username"
@@ -91,13 +91,13 @@ export default function LoginPage() {
             style={formError ? { borderColor: "#dc3545" } : {}}
           />
           {formError && (
-            <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "4px" }}>
+            <span className="error-text">
               {formError}
             </span>
           )}
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
+        <div style={{ marginBottom: "5px" }}>
           <input
             type="password"
             placeholder="Enter Password"
@@ -109,7 +109,7 @@ export default function LoginPage() {
             style={password.error ? { borderColor: "#dc3545" } : {}}
           />
           {password.error && (
-            <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "4px" }}>
+            <span className="error-text">
               {password.error}
             </span>
           )}
