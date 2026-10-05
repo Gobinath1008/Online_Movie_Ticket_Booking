@@ -20,7 +20,7 @@ export default function AdminUploadedPage() {
 
   const fetchImages = async () => {
     try {
-      const response = await fetch("/api/uploads");
+      const response = await fetch("http://localhost:8080/api/uploads");
       const result = await response.json();
       if (response.ok) {
         setImages(result.images);
@@ -36,7 +36,7 @@ export default function AdminUploadedPage() {
     if (!confirm(`Delete "${filename}"?`)) return;
 
     try {
-      const response = await fetch("/api/uploads", {
+      const response = await fetch("http://localhost:8080/api/uploads", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ filename }),
@@ -60,7 +60,7 @@ export default function AdminUploadedPage() {
     if (!file) return;
 
     try {
-      const deleteRes = await fetch("/api/uploads", {
+      const deleteRes = await fetch("http://localhost:8080/api/uploads", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ filename }),
@@ -80,7 +80,7 @@ export default function AdminUploadedPage() {
     formData.append("image", file);
 
     try {
-      const response = await fetch("/api/upload", {
+      const response = await fetch("http://localhost:8080/api/upload", {
         method: "POST",
         body: formData,
       });

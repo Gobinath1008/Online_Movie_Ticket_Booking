@@ -1,5 +1,4 @@
 "use client";
-import movies from "../data/movie.json";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import Hero from "../component/Hero";
@@ -9,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 export default function CustomerPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [movies, setMovies] = useState<any[]>([]);
   const router = useRouter();
 
   // Route protection: Check authentication on mount
@@ -21,10 +21,22 @@ export default function CustomerPage() {
     const user = JSON.parse(userStr);
     if (user.role !== "customer") {
       router.push(user.role === "admin" ? "/admin" : "/login");
+      return;
     }
+
+    const fetchMovies = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/movies");
+        const data = await response.json();
+        setMovies(data || []);
+      } catch (err) {
+        console.error("Failed to load movies", err);
+      }
+    };
+    fetchMovies();
   }, [router]);
 
-  const sortedMovies = [...movies].sort((a, b) => b.id - a.id);
+  const sortedMovies = [...movies].sort((a, b) => String(b.id).localeCompare(String(a.id)));
   const filteredMovies = sortedMovies.filter((movie) =>
     movie.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -54,37 +66,15 @@ export default function CustomerPage() {
           {filteredMovies.length > 0 ? (
             filteredMovies.map((movie, index) => (
               <div className="Movie-card" key={index}>
-                <div>
-                  <img src={movie.img} alt={movie.name} />
-                  <div className="content">
-                    <h2>
-                      <strong>Title:</strong>
-                      {movie.name}
-                    </h2>
-                    <p>
-                      <strong>Description:</strong> {movie.description}
-                    </p>
-                    <p>
-                      <strong>Genre:</strong> {movie.genre}
-                    </p>
-                    <p>
-                      <strong>Rating:</strong> {movie.rating}
-                    </p>
+                <img src={movie.img} alt={movie.name} />
+                <div className="content">
+                  <h1>{movie.name}</h1>
+                  <p><strong>Genre:</strong> {movie.genre}</p>
+                  <p><strong>Rating:</strong> {movie.rating}</p>
+                  <p><strong>Description:</strong> {movie.description}</p>
 
-                    <button
-                      onClick={() => router.push(`/booking/${movie.id}`)}
-                      style={{
-                        width: "90%",
-                        padding: "10px",
-                        backgroundColor: "#28a745",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "8px",
-                        marginTop: "15px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                      }}
-                    >
+                  <div className="btn-group">
+                    <button onClick={() => router.push(`/booking/${movie.id}`)}>
                       Book Now
                     </button>
                   </div>

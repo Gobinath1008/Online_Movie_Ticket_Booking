@@ -2,14 +2,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import movieData from "../data/movie.json";
 import Hero from "../component/Hero";
 import Footer from "../component/Footer";
 import Navbar from "../component/Navbar";
 
 export default function AdminPage() {
   const router = useRouter();
-  const [movies, setMovies] = useState(movieData);
+  const [movies, setMovies] = useState<any[]>([]);
   const [editMovie, setEditMovie] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -24,7 +23,19 @@ export default function AdminPage() {
     const user = JSON.parse(userStr);
     if (user.role !== "admin") {
       router.push(user.role === "customer" ? "/customer" : "/login");
+      return;
     }
+
+    const fetchMovies = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/movies");
+        const data = await response.json();
+        setMovies(data || []);
+      } catch (err) {
+        console.error("Failed to load movies", err);
+      }
+    };
+    fetchMovies();
   }, [router]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,28 +43,18 @@ export default function AdminPage() {
     if (!file) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-      if (response.ok) {
-        setEditMovie({ ...editMovie, img: result.imageUrl });
-        alert("Image uploaded successfully!");
-      } else {
-        alert(result.error);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("An error occurred while uploading.");
-    } finally {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEditMovie({ ...editMovie, img: reader.result as string });
       setUploading(false);
-    }
+      alert("Image selected successfully!");
+    };
+    reader.onerror = (error) => {
+      console.error("Error reading file:", error);
+      alert("An error occurred while processing the image.");
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleDelete = (index: number) => {
@@ -67,7 +68,7 @@ export default function AdminPage() {
   };
 
   const saveMoviesToServer = async (updatedMovies: any) => {
-    await fetch("/api/movies", {
+    await fetch("http://localhost:8080/api/movies", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedMovies),
@@ -78,7 +79,7 @@ export default function AdminPage() {
     const updatedMovies = [...movies];
     if (editMovie.index === -1) {
       // Add new movie
-      const newMovie = { ...editMovie, id: Date.now() };
+      const newMovie = { ...editMovie, id: Date.now().toString() };
       delete newMovie.index;
       updatedMovies.push(newMovie);
     } else {
@@ -104,7 +105,7 @@ export default function AdminPage() {
     });
   };
 
-  const sortedMovies = [...movies].sort((a, b) => b.id - a.id);
+  const sortedMovies = [...movies].sort((a, b) => String(b.id).localeCompare(String(a.id)));
   const filteredMovies = sortedMovies.filter((movie) =>
     movie.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -168,6 +169,11 @@ export default function AdminPage() {
                     <p>
                       <strong>Theater:</strong> {t.tname || t.name}
                     </p>
+                    {t.location && (
+                      <p>
+                        <strong>Location:</strong> {t.location}
+                      </p>
+                    )}
                     <p>
                       <strong>Date:</strong> {t.date}
                     </p>
@@ -231,13 +237,7 @@ export default function AdminPage() {
                 />
                 {uploading && <span style={{ fontSize: "12px", color: "blue" }}>Uploading...</span>}
               </div>
-              <input
-                value={editMovie.img || ""}
-                onChange={(e) =>
-                  setEditMovie({ ...editMovie, img: e.target.value })
-                }
-                placeholder="Or paste Image URL manually"
-              />
+
               {editMovie.img && (
                 <img 
                   src={editMovie.img} 
@@ -284,7 +284,7 @@ export default function AdminPage() {
             <h4>Theaters</h4>
             <button onClick={() => {
               const updatedTheaters = [...(editMovie.theaters || [])];
-              updatedTheaters.push({ tname: "", name: "", date: "", timings: [] });
+              updatedTheaters.push({ tname: "", name: "", date: "", location: "", timings: [] });
               setEditMovie({ ...editMovie, theaters: updatedTheaters });
             }} style={{ marginBottom: "10px", padding: "5px 10px", cursor: "pointer" }}>
               + Add Theater
@@ -305,6 +305,20 @@ export default function AdminPage() {
                   placeholder="Theater Name"
                 />
                 <input
+                  value={theater.location || ""}
+                  onChange={(e: any) => {
+                    const updatedTheaters = [...editMovie.theaters];
+                    updatedTheaters[tIndex] = {
+                      ...theater,
+                      location: e.target.value,
+                    };
+                    setEditMovie({ ...editMovie, theaters: updatedTheaters });
+                  }}
+                  placeholder="Location (e.g. City Mall, New York)"
+                />
+                <input
+                  type="date"
+                  min={new Date().toLocaleDateString('en-CA')} // 'en-CA' format is YYYY-MM-DD
                   value={theater.date || ""}
                   onChange={(e: any) => {
                     const updatedTheaters = [...editMovie.theaters];
@@ -314,7 +328,7 @@ export default function AdminPage() {
                     };
                     setEditMovie({ ...editMovie, theaters: updatedTheaters });
                   }}
-                  placeholder="Date (e.g. 14-04-2026)"
+                  title="Choose Date"
                 />
                 <input
                   value={theater.timings?.join(",") || ""}

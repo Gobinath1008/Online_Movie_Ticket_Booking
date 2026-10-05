@@ -69,13 +69,17 @@ function PaymentContent() {
 
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
+    if (!v) return "";
+    const matches = v.match(/.{1,4}/g);
+    return matches ? matches.join(" ") : "";
+  };
+
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\D/g, "");
+    if (v.length >= 3) {
+      return `${v.slice(0, 2)}/${v.slice(2, 4)}`;
     }
-    return parts.length ? parts.join(" ") : value;
+    return v;
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -103,40 +107,14 @@ function PaymentContent() {
     const user = JSON.parse(userStr);
 
     try {
-      const res = await fetch("/api/movies", {
+
+      const bookingRes = await fetch("http://localhost:8080/api/bookings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          movieId: Number(movieId),
-          theater: theater,
-          date: date,
-          time: time,
-          seats: seatArray,
-        }),
-      });
-
-      let data: any = {};
-      try {
-        data = await res.json();
-      } catch {
-        console.error("Invalid JSON response");
-      }
-
-      if (!res.ok) {
-        alert(data.message || "Booking failed");
-        setLoading(false);
-        return;
-      }
-
-      const bookingRes = await fetch("/api/bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          movieId: Number(movieId),
+          movieId: String(movieId),
           movieName: movieName,
           theater: theater,
           date: date,
@@ -293,7 +271,7 @@ function PaymentContent() {
                       type="text"
                       placeholder="John Doe"
                       value={formData.cardName}
-                      onChange={(e) => handleInputChange("cardName", e.target.value)}
+                      onChange={(e) => handleInputChange("cardName", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
                       className={errors.cardName ? "error" : ""}
                     />
                     {errors.cardName && <span className="error-text">{errors.cardName}</span>}
@@ -307,7 +285,7 @@ function PaymentContent() {
                         placeholder="MM/YY"
                         maxLength={5}
                         value={formData.expiry}
-                        onChange={(e) => handleInputChange("expiry", e.target.value)}
+                        onChange={(e) => handleInputChange("expiry", formatExpiry(e.target.value))}
                         className={errors.expiry ? "error" : ""}
                       />
                       {errors.expiry && <span className="error-text">{errors.expiry}</span>}
@@ -319,7 +297,7 @@ function PaymentContent() {
                         placeholder="123"
                         maxLength={3}
                         value={formData.cvv}
-                        onChange={(e) => handleInputChange("cvv", e.target.value)}
+                        onChange={(e) => handleInputChange("cvv", e.target.value.replace(/\D/g, ""))}
                         className={errors.cvv ? "error" : ""}
                       />
                       {errors.cvv && <span className="error-text">{errors.cvv}</span>}

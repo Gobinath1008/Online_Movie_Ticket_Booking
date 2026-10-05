@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Home } from "lucide-react";
 import "./signup.css";
 
 export default function SignupPage() {
@@ -70,7 +71,7 @@ export default function SignupPage() {
     }
 
     try {
-      const res = await fetch("/api/signup", {
+      const res = await fetch("http://localhost:8080/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,6 +104,14 @@ export default function SignupPage() {
 
   return (
     <div className="signup-container">
+      <button 
+        onClick={() => router.push("/")}
+        style={{ position: 'absolute', top: '30px', left: '30px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(232, 154, 36, 0.5)', borderRadius: '8px', padding: '10px 20px', color: '#e89a24', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 'bold', transition: 'all 0.3s ease' }}
+        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(232, 154, 36, 0.2)'}
+        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+      >
+        <Home size={20} /> Back to Home
+      </button>
       <form className="signup-box" onSubmit={handleSignup}>
         <h2>Signup</h2>
 
@@ -154,6 +163,15 @@ export default function SignupPage() {
         {errors.form && <span className="error-text">{errors.form}</span>}
 
         <button type="submit">Signup</button>
+        
+        <button 
+          type="button" 
+          className="back-btn" 
+          onClick={() => router.push("/login")}
+          style={{ marginTop: "10px", background: "transparent", color: "#f5a623", border: "1px solid #f5a623" }}
+        >
+          Back to Login
+        </button>
       </form>
     </div>
   );

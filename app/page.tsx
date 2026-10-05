@@ -1,17 +1,28 @@
 "use client";
 import Link from "next/link";
-import movies from "./data/movie.json";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Hero from "./component/Hero";
 import Footer from "./component/Footer";
 import Navbar from "./component/Navbar";
+import { getMovies } from "../lib/api";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showLoginMsg, setShowLoginMsg] = useState(false);
+  const [movies, setMovies] = useState<any[]>([]);
+
+  useEffect(() => {
+    getMovies()
+      .then((res) => {
+        setMovies(res.data || []);
+      })
+      .catch((err) => console.error("Failed to load movies:", err));
+  }, []);
+
   const sortedMovies = [...movies].sort((a, b) => b.id - a.id);
   const filteredMovies = sortedMovies.filter((movie) =>
-    movie.name.toLowerCase().includes(searchQuery.toLowerCase())
+    movie.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    movie.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -37,27 +48,17 @@ export default function Home() {
           {filteredMovies.length > 0 ? (
             filteredMovies.map((movie, index) => (
             <div className="Movie-card" key={index}>
-              <div>
-                <img src={movie.img} alt={movie.name} />
-                <div className="content">
-                  <h2>
-                    <strong>Title:</strong>
-                    {movie.name}
-                  </h2>
-                  <p>
-                    <strong>Description:</strong> {movie.description}
-                  </p>
-                  <p>
-                    <strong>Genre:</strong> {movie.genre}
-                  </p>
-                  <p>
-                    <strong>Rating:</strong> {movie.rating}
-                  </p>
+              <img src={movie.img} alt={movie.name} />
+              <div className="content">
+                <h1>{movie.name}</h1>
+                <p><strong>Genre:</strong> {movie.genre}</p>
+                <p><strong>Rating:</strong> {movie.rating}</p>
+                <p><strong>Description:</strong> {movie.description}</p>
 
-                  <button onClick={() => setShowLoginMsg(true)}
-                  style={{ width: "90%", padding: "12px", background: "linear-gradient(135deg, #e89a24, #f5a623)", color: "white", border: "none",
-                  borderRadius: "10px", marginTop: "15px", cursor: "pointer",
-                  fontWeight: "bold", boxShadow: "0 4px 15px rgba(232, 154, 36, 0.3)", transition: "all 0.3s ease" }}>Book Now</button>
+                <div className="btn-group">
+                  <button onClick={() => setShowLoginMsg(true)} style={{ background: "linear-gradient(135deg, #e89a24, #f5a623)", color: "white" }}>
+                    Login to Book
+                  </button>
                 </div>
               </div>
             </div>

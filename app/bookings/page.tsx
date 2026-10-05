@@ -49,11 +49,11 @@ export default function MyBookingsPage() {
     const user = JSON.parse(userStr);
 
     try {
-      const res = await fetch(`/api/bookings?userId=${user.id}`);
+      const res = await fetch(`http://localhost:8080/api/bookings/user/${user.id}`);
       const data = await res.json();
 
       if (res.ok) {
-        setBookings(Array.isArray(data.bookings) ? data.bookings : []);
+        setBookings(Array.isArray(data) ? data : []);
       }
     } catch (e) {
       console.error("Failed to load bookings", e);
@@ -69,7 +69,7 @@ export default function MyBookingsPage() {
     if (!bookingToCancel) return;
 
     try {
-      const res = await fetch("/api/bookings", {
+      const res = await fetch("http://localhost:8080/api/bookings", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

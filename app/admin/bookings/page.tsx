@@ -45,11 +45,11 @@ export default function AdminBookingsPage() {
 
   const loadBookings = async () => {
     try {
-      const res = await fetch("/api/bookings?role=admin");
+      const res = await fetch("http://localhost:8080/api/bookings");
       const data = await res.json();
 
       if (res.ok) {
-        setBookings(Array.isArray(data.bookings) ? data.bookings : []);
+        setBookings(Array.isArray(data) ? data : []);
       }
     } catch (e) {
       console.error("Failed to load bookings", e);
@@ -64,7 +64,7 @@ export default function AdminBookingsPage() {
     if (!bookingToDelete) return;
 
     try {
-      const res = await fetch("/api/bookings", {
+      const res = await fetch("http://localhost:8080/api/bookings", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,7 +95,7 @@ export default function AdminBookingsPage() {
     if (!editBooking) return;
 
     try {
-      const res = await fetch("/api/bookings", {
+      const res = await fetch("http://localhost:8080/api/bookings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -114,7 +114,7 @@ export default function AdminBookingsPage() {
       if (res.ok) {
         const data = await res.json();
         const updatedBookings = bookings.map((b) =>
-          b.id === editBooking.id ? data.booking : b
+          b.id === editBooking.id ? data : b
         );
         setBookings(updatedBookings);
         setEditBooking(null);

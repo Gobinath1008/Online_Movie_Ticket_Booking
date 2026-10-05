@@ -1,7 +1,6 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import moviesData from "../../data/movie.json";
 import "./booking.css";
 import Navbar from "@/app/component/Navbar";
 
@@ -14,25 +13,23 @@ export default function BookingPage() {
   useEffect(() => {
     if (!id) return;
 
-    let data = moviesData;
-    try {
-      const stored = localStorage.getItem("movies.json");
-      if (stored && stored !== "null" && stored !== "undefined") {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          data = parsed;
+    const fetchMovie = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/movies");
+        const data = await response.json();
+        
+        if (Array.isArray(data)) {
+          const selected = data.find((m: any) => String(m.id) === String(id));
+          setMovie(selected || null);
         }
+      } catch (e) {
+        console.error("Failed to fetch movie", e);
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.error("Failed to parse local storage", e);
-    }
+    };
 
-    // Fallback to sync localStorage if it was missing/invalid
-    localStorage.setItem("movies", JSON.stringify(data));
-
-    const selected = data.find((m: any) => Number(m.id) === Number(id));
-    setMovie(selected || null);
-    setLoading(false);
+    fetchMovie();
   }, [id]);
 
   if (loading)
@@ -52,8 +49,9 @@ export default function BookingPage() {
       <div className="theater-list">
         {movie.theaters.map((t: any, i: number) => (
           <div className="theater-card" key={i}>
-            <h4 className="theater-name">{t.tname}</h4><h4 className="theater-name">{t.date}</h4>
-            
+            <h4 className="theater-name">{t.tname}</h4>
+            {t.location && <p className="theater-location" style={{color: "#888", fontSize: "14px", marginTop: "4px"}}>{t.location}</p>}
+            <h4 className="theater-name">{t.date}</h4>
             <div className="time-buttons">
               {t.timings.map((time: string, j: number) => (
                 <button

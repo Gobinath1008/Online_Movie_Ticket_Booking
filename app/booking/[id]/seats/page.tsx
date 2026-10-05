@@ -25,7 +25,7 @@ function SeatBookingContent() {
   useEffect(() => {
     const fetchMovieRate = async () => {
       try {
-        const res = await fetch("/api/movies");
+        const res = await fetch("http://localhost:8080/api/movies");
         const data = await res.json();
         if (Array.isArray(data)) {
           const movie = data.find((m: any) => m.id === parseInt(id as string));
@@ -49,7 +49,7 @@ function SeatBookingContent() {
 
       try {
         const res = await fetch(
-          `/api/movies?movieId=${id}&theater=${encodeURIComponent(
+          `http://localhost:8080/api/movies?movieId=${id}&theater=${encodeURIComponent(
             theater
           )}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`
         );
